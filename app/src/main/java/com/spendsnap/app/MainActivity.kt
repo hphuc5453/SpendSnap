@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.spendsnap.app.ui.ExpenseViewModel
@@ -65,7 +67,6 @@ fun MainScreen(viewModel: ExpenseViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            // Only show bottom bar for main screens, hide for detail screen
             if (selectedScreen != Screen.TransactionDetail) {
                 SpendSnapBottomNav(
                     currentScreen = selectedScreen,
@@ -99,8 +100,14 @@ fun SpendSnapBottomNav(
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
+        modifier = Modifier
+            .height(86.dp)
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                ambientColor = Color.Black,
+                spotColor = Color.Black
+            )
     ) {
         bottomNavItems.forEach { screen ->
             val isSelected = currentScreen == screen
@@ -110,12 +117,13 @@ fun SpendSnapBottomNav(
                 selected = isSelected,
                 onClick = { onScreenSelected(screen) },
                 icon = {
-                    if (isCamera) {
+                    if (isSelected) {
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
+                                .background(MaterialTheme.colorScheme.primary)
+                                .shadow(8.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(

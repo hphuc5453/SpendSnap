@@ -6,13 +6,13 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class Screen(val route: String, val icon: ImageVector? = null, val label: String? = null) {
-    object Home : Screen("home", Icons.Default.Home, "Home")
-    object History : Screen("history", Icons.Default.DateRange, "History")
-    object Camera : Screen("camera", Icons.Default.Home, "Camera")
-    object Categories : Screen("categories", Icons.Default.Home, "Categories")
-    object Profile : Screen("profile", Icons.Default.Person, "Profile")
-    object TransactionDetail : Screen("transaction_detail")
+sealed class Screen(val icon: ImageVector? = null, val label: String? = null) {
+    object Home : Screen(Icons.Default.Home, "Home")
+    object History : Screen(Icons.Default.DateRange, "History")
+    object Camera : Screen(Icons.Default.Home, "Camera")
+    object Categories : Screen(Icons.Default.Home, "Categories")
+    object Profile : Screen(Icons.Default.Person, "Profile")
+    object TransactionDetail : Screen()
 }
 
 val bottomNavItems = listOf(
