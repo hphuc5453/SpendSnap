@@ -37,13 +37,13 @@ import com.spendsnap.app.ui.bottomNavItems
 import com.spendsnap.app.ui.camera.CameraScreen
 import com.spendsnap.app.ui.categories.CategoriesScreen
 import com.spendsnap.app.ui.history.HistoryScreen
+import com.spendsnap.app.ui.history.TransactionDetailScreen
 import com.spendsnap.app.ui.home.HomeScreen
-import com.spendsnap.app.ui.profile.ProfileScreen
 import com.spendsnap.app.ui.theme.SpendSnapTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel: ExpenseViewModel by viewModels {
-        ExpenseViewModelFactory((application as ExpenseApplication).repository)
+        ExpenseViewModelFactory((application as App).repository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,27 +65,28 @@ fun MainScreen(viewModel: ExpenseViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            SpendSnapBottomNav(
-                currentScreen = selectedScreen,
-                onScreenSelected = { selectedScreen = it }
-            )
+            // Only show bottom bar for main screens, hide for detail screen
+            if (selectedScreen != Screen.TransactionDetail) {
+                SpendSnapBottomNav(
+                    currentScreen = selectedScreen,
+                    onScreenSelected = { selectedScreen = it }
+                )
+            }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedScreen) {
                 Screen.Home -> HomeScreen()
-                Screen.History -> HistoryScreen()
+                Screen.History -> HistoryScreen(onTransactionClick = { selectedScreen = Screen.TransactionDetail })
                 Screen.Categories -> CategoriesScreen()
-                Screen.Profile -> ProfileScreen()
+                Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen()
+                Screen.TransactionDetail -> TransactionDetailScreen(onBack = { selectedScreen = Screen.History })
                 Screen.Camera -> CameraScreen(
                     onPhotoCaptured = { uri, amount ->
                         viewModel.addExpense(amount, uri)
                         selectedScreen = Screen.Home
                     }
                 )
-                else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Screen: ${selectedScreen.label}", color = MaterialTheme.colorScheme.onBackground)
-                }
             }
         }
     }
@@ -118,7 +119,7 @@ fun SpendSnapBottomNav(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = screen.icon,
+                                imageVector = screen.icon!!,
                                 contentDescription = screen.label,
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
@@ -126,7 +127,7 @@ fun SpendSnapBottomNav(
                         }
                     } else {
                         Icon(
-                            imageVector = screen.icon,
+                            imageVector = screen.icon!!,
                             contentDescription = screen.label,
                             modifier = Modifier.size(24.dp)
                         )

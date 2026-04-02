@@ -2,6 +2,7 @@ package com.spendsnap.app.ui.history
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -24,7 +25,10 @@ import androidx.compose.ui.unit.sp
 import com.spendsnap.app.ui.components.HeaderSection
 
 @Composable
-fun HistoryScreen(modifier: Modifier = Modifier) {
+fun HistoryScreen(
+    onTransactionClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -52,7 +56,7 @@ fun HistoryScreen(modifier: Modifier = Modifier) {
         )
 
         // Grid of Moments
-        MomentsGrid()
+        MomentsGrid(onTransactionClick)
         
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -87,7 +91,6 @@ fun MoneyLeftCard() {
                 )
             }
             
-            // Trending Button
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -107,19 +110,19 @@ fun MoneyLeftCard() {
 }
 
 @Composable
-fun MomentsGrid() {
+fun MomentsGrid(onTransactionClick: () -> Unit) {
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
             MomentItem(
                 price = "$6.50",
                 info = "COFFEE SHOP • 2H AGO",
-                modifier = Modifier.weight(1f).height(180.dp)
+                modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick() }
             )
             Spacer(modifier = Modifier.width(16.dp))
             MomentItem(
                 price = "$899.00",
                 info = "APPLE STORE • 5H AGO",
-                modifier = Modifier.weight(1f).height(180.dp)
+                modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick() }
             )
         }
         
@@ -129,7 +132,7 @@ fun MomentsGrid() {
             price = "$120.00",
             info = "NIKE FLAGSHIP • YESTERDAY",
             isLarge = true,
-            modifier = Modifier.fillMaxWidth().height(300.dp)
+            modifier = Modifier.fillMaxWidth().height(300.dp).clickable { onTransactionClick() }
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -138,13 +141,13 @@ fun MomentsGrid() {
             MomentItem(
                 price = "$45.00",
                 info = "TOP GRILL • 2D AGO",
-                modifier = Modifier.weight(1f).height(180.dp)
+                modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick() }
             )
             Spacer(modifier = Modifier.width(16.dp))
             MomentItem(
                 price = "$22.00",
                 info = "PET SHOP • 3D AGO",
-                modifier = Modifier.weight(1f).height(180.dp)
+                modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick() }
             )
         }
     }
@@ -163,7 +166,6 @@ fun MomentItem(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Placeholder for Image (Black background with gradient)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
