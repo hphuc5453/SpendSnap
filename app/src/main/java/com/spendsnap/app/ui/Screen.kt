@@ -1,17 +1,14 @@
 package com.spendsnap.app.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.annotation.DrawableRes
+import com.spendsnap.app.R
 
-sealed class Screen(val icon: ImageVector? = null, val label: String? = null) {
-    object Home : Screen(Icons.Default.Home, "Home")
-    object History : Screen(Icons.Default.DateRange, "History")
-    object Camera : Screen(Icons.Default.Home, "Camera")
-    object Categories : Screen(Icons.Default.Home, "Categories")
-    object Profile : Screen(Icons.Default.Person, "Profile")
+sealed class Screen(@DrawableRes val icon: Int? = null, val label: String? = null) {
+    object Home : Screen(R.drawable.outline_home_24, "Home")
+    object History : Screen(R.drawable.outline_history_24, "History")
+    object Camera : Screen(R.drawable.outline_photo_camera_24, "Camera")
+    object Categories : Screen(R.drawable.outline_category_24, "Categories")
+    object Profile : Screen(R.drawable.outline_person_apron_24, "Profile")
     object TransactionDetail : Screen()
 }
 

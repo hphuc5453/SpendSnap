@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.spendsnap.app.ui.ExpenseViewModel
 import com.spendsnap.app.ui.ExpenseViewModelFactory
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(viewModel: ExpenseViewModel) {
-    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Camera) }
     val expenses by viewModel.allExpenses.collectAsState()
 
     Scaffold(
@@ -127,7 +128,7 @@ fun SpendSnapBottomNav(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = screen.icon!!,
+                                painter = painterResource(id = screen.icon!!),
                                 contentDescription = screen.label,
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
@@ -135,7 +136,7 @@ fun SpendSnapBottomNav(
                         }
                     } else {
                         Icon(
-                            imageVector = screen.icon!!,
+                            painter = painterResource(id = screen.icon!!),
                             contentDescription = screen.label,
                             modifier = Modifier.size(24.dp)
                         )
