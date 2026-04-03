@@ -19,7 +19,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,12 +29,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.spendsnap.app.ui.ExpenseViewModel
 import com.spendsnap.app.ui.ExpenseViewModelFactory
 import com.spendsnap.app.ui.Screen
+import com.spendsnap.app.ui.auth.LoginScreen
+import com.spendsnap.app.ui.auth.SignupScreen
 import com.spendsnap.app.ui.bottomNavItems
 import com.spendsnap.app.ui.camera.CameraScreen
 import com.spendsnap.app.ui.categories.CategoriesScreen
@@ -43,6 +45,8 @@ import com.spendsnap.app.ui.history.HistoryScreen
 import com.spendsnap.app.ui.history.TransactionDetailScreen
 import com.spendsnap.app.ui.home.HomeScreen
 import com.spendsnap.app.ui.theme.SpendSnapTheme
+import com.spendsnap.app.ui.theme.bottomBackground
+import com.spendsnap.app.ui.theme.topBackground
 
 class MainActivity : ComponentActivity() {
     private val viewModel: ExpenseViewModel by viewModels {
@@ -62,13 +66,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(viewModel: ExpenseViewModel) {
-    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Camera) }
+    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Login) }
     val expenses by viewModel.allExpenses.collectAsState()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(topBackground, bottomBackground)
+                )
+            ),
+        containerColor = Color.Transparent,
         bottomBar = {
-            if (selectedScreen != Screen.TransactionDetail) {
+            if (selectedScreen != Screen.Login && selectedScreen != Screen.Signup && selectedScreen != Screen.TransactionDetail) {
                 SpendSnapBottomNav(
                     currentScreen = selectedScreen,
                     onScreenSelected = { selectedScreen = it }
@@ -78,11 +89,27 @@ fun MainScreen(viewModel: ExpenseViewModel) {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedScreen) {
+                Screen.Login -> LoginScreen(
+                    onLoginSuccess = { selectedScreen = Screen.Home },
+                    onSignupClick = { selectedScreen = Screen.Signup }
+                )
+
+                Screen.Signup -> SignupScreen(
+                    onSignupSuccess = { selectedScreen = Screen.Home },
+                    onBackToLogin = { selectedScreen = Screen.Login }
+                )
+
                 Screen.Home -> HomeScreen()
-                Screen.History -> HistoryScreen(onTransactionClick = { selectedScreen = Screen.TransactionDetail })
+                Screen.History -> HistoryScreen(onTransactionClick = {
+                    selectedScreen = Screen.TransactionDetail
+                })
+
                 Screen.Categories -> CategoriesScreen()
                 Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen()
-                Screen.TransactionDetail -> TransactionDetailScreen(onBack = { selectedScreen = Screen.History })
+                Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
+                    selectedScreen = Screen.History
+                })
+
                 Screen.Camera -> CameraScreen(
                     onPhotoCaptured = { uri, amount ->
                         viewModel.addExpense(amount, uri)
@@ -100,7 +127,7 @@ fun SpendSnapBottomNav(
     onScreenSelected: (Screen) -> Unit
 ) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .height(86.dp)
             .shadow(
@@ -118,13 +145,18 @@ fun SpendSnapBottomNav(
                 selected = isSelected,
                 onClick = { onScreenSelected(screen) },
                 icon = {
-                    if (isSelected) {
+                    if (isCamera) {
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
-                                .shadow(8.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary),
+                                .shadow(
+                                    8.dp,
+                                    CircleShape,
+                                    ambientColor = MaterialTheme.colorScheme.primary,
+                                    spotColor = MaterialTheme.colorScheme.primary
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(

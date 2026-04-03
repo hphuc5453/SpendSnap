@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Spend Snap</string>
+    <string name="login_tagline">CAPTURE YOUR CASHFLOW</string>
+    <string name="label_email">EMAIL ADDRESS</string>
+    <string name="placeholder_email">hello@spendsnap.io</string>
+    <string name="label_password">PASSWORD</string>
+    <string name="btn_forgot_password">FORGOT PASSWORD?</string>
+    <string name="placeholder_password">••••••••</string>
+    <string name="btn_login">Login</string>
+    <string name="label_or_continue_with"> OR CONTINUE WITH </string>
+    <string name="label_google">Google</string>
+    <string name="label_apple">Apple</string>
+    <string name="label_new_user">New to Spend Snap?</string>
+    <string name="btn_create_account">Create Account</string>
 </resources>

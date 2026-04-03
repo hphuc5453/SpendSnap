@@ -16,3 +16,6 @@ val OnSurface = Color(0xFFE1E1E1)
 // Neutral shades for labels and bodies
 val Neutral80 = Color(0xFFC4C4C4)
 val Neutral40 = Color(0xFF424242)
+val topBackground = Color(0xFF16170f)
+val bottomBackground = Color(0xFF1d1715)
+val inputBackground = Color(0xFF262626)
