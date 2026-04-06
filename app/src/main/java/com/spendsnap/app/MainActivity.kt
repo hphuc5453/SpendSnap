@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +19,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +32,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.spendsnap.app.ui.ExpenseViewModel
-import com.spendsnap.app.ui.ExpenseViewModelFactory
+import com.spendsnap.app.data.local.AuthManager
 import com.spendsnap.app.ui.Screen
 import com.spendsnap.app.ui.auth.LoginScreen
 import com.spendsnap.app.ui.auth.SignupScreen
@@ -47,27 +45,43 @@ import com.spendsnap.app.ui.home.HomeScreen
 import com.spendsnap.app.ui.theme.SpendSnapTheme
 import com.spendsnap.app.ui.theme.bottomBackground
 import com.spendsnap.app.ui.theme.topBackground
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.firstOrNull
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val viewModel: ExpenseViewModel by viewModels {
-        ExpenseViewModelFactory((application as App).repository)
-    }
+
+    @Inject
+    lateinit var authManager: AuthManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SpendSnapTheme {
-                MainScreen(viewModel)
+                MainScreen(authManager)
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(viewModel: ExpenseViewModel) {
-    var selectedScreen by remember { mutableStateOf<Screen>(Screen.Login) }
-    val expenses by viewModel.allExpenses.collectAsState()
+fun MainScreen(authManager: AuthManager) {
+    var selectedScreen by remember { mutableStateOf<Screen?>(null) }
+
+    LaunchedEffect(Unit) {
+        val token = authManager.accessToken.firstOrNull()
+        selectedScreen = if (!token.isNullOrEmpty()) {
+            Screen.Home
+        } else {
+            Screen.Login
+        }
+    }
+
+    if (selectedScreen == null) {
+        return
+    }
 
     Scaffold(
         modifier = Modifier
@@ -81,7 +95,7 @@ fun MainScreen(viewModel: ExpenseViewModel) {
         bottomBar = {
             if (selectedScreen != Screen.Login && selectedScreen != Screen.Signup && selectedScreen != Screen.TransactionDetail) {
                 SpendSnapBottomNav(
-                    currentScreen = selectedScreen,
+                    currentScreen = selectedScreen!!,
                     onScreenSelected = { selectedScreen = it }
                 )
             }
@@ -95,7 +109,7 @@ fun MainScreen(viewModel: ExpenseViewModel) {
                 )
 
                 Screen.Signup -> SignupScreen(
-                    onSignupSuccess = { selectedScreen = Screen.Home },
+                    onSignupSuccess = { selectedScreen = Screen.Login },
                     onBackToLogin = { selectedScreen = Screen.Login }
                 )
 
@@ -105,17 +119,21 @@ fun MainScreen(viewModel: ExpenseViewModel) {
                 })
 
                 Screen.Categories -> CategoriesScreen()
-                Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen()
+                Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
+                    onLogoutSuccess = { selectedScreen = Screen.Login }
+                )
+
                 Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
                     selectedScreen = Screen.History
                 })
 
                 Screen.Camera -> CameraScreen(
                     onPhotoCaptured = { uri, amount ->
-                        viewModel.addExpense(amount, uri)
                         selectedScreen = Screen.Home
                     }
                 )
+
+                else -> {}
             }
         }
     }
