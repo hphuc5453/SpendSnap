@@ -31,4 +31,13 @@
     <string name="error_email_required">Email is required.</string>
     <string name="error_password_required">Password is required.</string>
     <string name="error_password_mismatch">Passwords do not match.</string>
+
+    <!-- Camera Screen -->
+    <string name="camera_permission_required">Camera permission is required</string>
+    <string name="cd_capture">Capture</string>
+    <string name="label_receipt_scan">RECEIPT SCAN</string>
+    <string name="label_entering_amount">ENTERING AMOUNT</string>
+    <string name="currency_symbol">$</string>
+    <string name="btn_confirm">CONFIRM</string>
+    <string name="btn_retake_photo">RETAKE</string>
 </resources>

@@ -73,7 +73,7 @@ fun MainScreen(authManager: AuthManager) {
     LaunchedEffect(Unit) {
         val token = authManager.accessToken.firstOrNull()
         selectedScreen = if (!token.isNullOrEmpty()) {
-            Screen.Home
+            Screen.Camera
         } else {
             Screen.Login
         }
@@ -104,7 +104,7 @@ fun MainScreen(authManager: AuthManager) {
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedScreen) {
                 Screen.Login -> LoginScreen(
-                    onLoginSuccess = { selectedScreen = Screen.Home },
+                    onLoginSuccess = { selectedScreen = Screen.Camera },
                     onSignupClick = { selectedScreen = Screen.Signup }
                 )
 
@@ -127,11 +127,7 @@ fun MainScreen(authManager: AuthManager) {
                     selectedScreen = Screen.History
                 })
 
-                Screen.Camera -> CameraScreen(
-                    onPhotoCaptured = { uri, amount ->
-                        selectedScreen = Screen.Home
-                    }
-                )
+                Screen.Camera -> CameraScreen()
 
                 else -> {}
             }
