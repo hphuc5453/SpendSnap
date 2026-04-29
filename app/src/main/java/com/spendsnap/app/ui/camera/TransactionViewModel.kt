@@ -3,6 +3,7 @@ package com.spendsnap.app.ui.camera
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendsnap.app.data.remote.models.TransactionRequest
+import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.services.ApiResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,17 @@ class TransactionViewModel @Inject constructor(
 
     private val _createTransactionState = MutableStateFlow<ApiResult<Unit>?>(null)
     val createTransactionState: StateFlow<ApiResult<Unit>?> = _createTransactionState.asStateFlow()
+
+    private val _transactionsState = MutableStateFlow<ApiResult<List<TransactionResponse>>?>(null)
+    val transactionsState: StateFlow<ApiResult<List<TransactionResponse>>?> = _transactionsState.asStateFlow()
+
+    fun getTransactions() {
+        viewModelScope.launch {
+            _transactionsState.value = ApiResult.Loading(true)
+            val result = transactionRepository.getTransactions()
+            _transactionsState.value = result
+        }
+    }
 
     fun createTransaction(imageFile: File, amount: Double) {
         viewModelScope.launch {

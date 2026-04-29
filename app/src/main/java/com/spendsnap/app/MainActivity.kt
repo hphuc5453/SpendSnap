@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.spendsnap.app.data.local.AuthManager
+import com.spendsnap.app.shared.Utils
 import com.spendsnap.app.ui.Screen
 import com.spendsnap.app.ui.auth.LoginScreen
 import com.spendsnap.app.ui.auth.SignupScreen
@@ -102,34 +103,36 @@ fun MainScreen(authManager: AuthManager) {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedScreen) {
-                Screen.Login -> LoginScreen(
-                    onLoginSuccess = { selectedScreen = Screen.Camera },
-                    onSignupClick = { selectedScreen = Screen.Signup }
-                )
+            Utils.AnimatedScreenTransition(targetState = selectedScreen) { screen ->
+                when (screen) {
+                    Screen.Login -> LoginScreen(
+                        onLoginSuccess = { selectedScreen = Screen.Camera },
+                        onSignupClick = { selectedScreen = Screen.Signup }
+                    )
 
-                Screen.Signup -> SignupScreen(
-                    onSignupSuccess = { selectedScreen = Screen.Login },
-                    onBackToLogin = { selectedScreen = Screen.Login }
-                )
+                    Screen.Signup -> SignupScreen(
+                        onSignupSuccess = { selectedScreen = Screen.Login },
+                        onBackToLogin = { selectedScreen = Screen.Login }
+                    )
 
-                Screen.Home -> HomeScreen()
-                Screen.History -> HistoryScreen(onTransactionClick = {
-                    selectedScreen = Screen.TransactionDetail
-                })
+                    Screen.Home -> HomeScreen()
+                    Screen.History -> HistoryScreen(onTransactionClick = {
+                        selectedScreen = Screen.TransactionDetail
+                    })
 
-                Screen.Categories -> CategoriesScreen()
-                Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
-                    onLogoutSuccess = { selectedScreen = Screen.Login }
-                )
+                    Screen.Categories -> CategoriesScreen()
+                    Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
+                        onLogoutSuccess = { selectedScreen = Screen.Login }
+                    )
 
-                Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
-                    selectedScreen = Screen.History
-                })
+                    Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
+                        selectedScreen = Screen.History
+                    })
 
-                Screen.Camera -> CameraScreen()
+                    Screen.Camera -> CameraScreen()
 
-                else -> {}
+                    else -> {}
+                }
             }
         }
     }

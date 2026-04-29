@@ -1,9 +1,9 @@
 package com.spendsnap.app.data.remote.repositories.transactions
 
 import com.spendsnap.app.data.remote.models.TransactionRequest
+import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.data.remote.services.transactions.TransactionService
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,5 +13,9 @@ class TransactionRepository @Inject constructor(
 ): ITransactionRepository {
     override suspend fun createTransaction(request: TransactionRequest): ApiResult<Unit> {
         return transactionService.createTransaction(request)
+    }
+
+    override suspend fun getTransactions(): ApiResult<List<TransactionResponse>> {
+        return transactionService.getTransactions()
     }
 }

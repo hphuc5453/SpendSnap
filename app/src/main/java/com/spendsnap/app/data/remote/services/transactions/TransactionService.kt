@@ -2,6 +2,7 @@ package com.spendsnap.app.data.remote.services.transactions
 
 import com.spendsnap.app.data.remote.clients.TransactionClient
 import com.spendsnap.app.data.remote.models.TransactionRequest
+import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.data.remote.services.BaseService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -21,5 +22,9 @@ class TransactionService @Inject constructor(
         val amountPart = request.amount.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
         return safeApiCall { transactionClient.createTransaction(imagePart, amountPart) }
+    }
+
+    override suspend fun getTransactions(): ApiResult<List<TransactionResponse>> {
+        return safeApiCall { transactionClient.getTransactions() }
     }
 }
