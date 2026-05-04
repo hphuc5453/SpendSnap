@@ -58,6 +58,7 @@ import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.ui.components.LoadingDialog
 import com.spendsnap.app.ui.components.MessageDialog
 import com.spendsnap.app.ui.theme.inputBackground
+import com.spendsnap.app.view_models.AuthViewModel
 
 @Composable
 fun LoginScreen(

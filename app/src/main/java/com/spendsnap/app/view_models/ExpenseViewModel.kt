@@ -1,4 +1,4 @@
-package com.spendsnap.app.ui
+package com.spendsnap.app.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

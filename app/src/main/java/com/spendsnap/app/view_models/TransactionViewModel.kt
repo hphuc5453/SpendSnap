@@ -1,4 +1,4 @@
-package com.spendsnap.app.ui.camera
+package com.spendsnap.app.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,7 +36,12 @@ class TransactionViewModel @Inject constructor(
     fun createTransaction(imageFile: File, amount: Double) {
         viewModelScope.launch {
             _createTransactionState.value = ApiResult.Loading(true)
-            val result = transactionRepository.createTransaction(TransactionRequest(imageFile, amount))
+            val result = transactionRepository.createTransaction(
+                TransactionRequest(
+                    imageFile,
+                    amount
+                )
+            )
             _createTransactionState.value = result
         }
     }

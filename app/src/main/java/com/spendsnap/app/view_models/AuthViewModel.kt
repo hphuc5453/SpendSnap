@@ -1,4 +1,4 @@
-package com.spendsnap.app.ui.auth
+package com.spendsnap.app.view_models
 
 import android.util.Base64
 import androidx.lifecycle.ViewModel
@@ -9,6 +9,7 @@ import com.spendsnap.app.data.remote.models.LoginRequest
 import com.spendsnap.app.data.remote.models.SignupRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
+import com.spendsnap.app.data.remote.repositories.user.IUserRepository
 import com.spendsnap.app.data.remote.services.ApiResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val userRepository: IUserRepository
 ) : ViewModel() {
 
     //login
@@ -41,12 +43,12 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _loginState.value = ApiResult.Loading(true)
             val result = authRepository.signIn(LoginRequest(email, encodePassword(password)))
-            
+
             // Nếu thành công, lưu token vào DataStore
             if (result is ApiResult.Success) {
                 authManager.saveAccessToken(result.data.accessToken)
             }
-            
+
             _loginState.value = result
         }
     }
@@ -54,10 +56,10 @@ class AuthViewModel @Inject constructor(
     fun signup(name: String, email: String, password: String) {
         viewModelScope.launch {
             _signupState.value = ApiResult.Loading(true)
-            
+
             // Mã hóa mật khẩu bằng SHA-256 trước khi gửi
             val encodedPassword = encodePassword(password)
-            
+
             val result = authRepository.signUp(SignupRequest(name, email, encodedPassword))
             _signupState.value = result
         }
@@ -76,6 +78,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authManager.clearAuth()
+            userRepository.clearCache()
             _logoutState.value = true
         }
     }

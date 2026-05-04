@@ -5,6 +5,7 @@ import com.spendsnap.app.BuildConfig
 import com.spendsnap.app.data.local.AuthManager
 import com.spendsnap.app.data.remote.clients.AuthClient
 import com.spendsnap.app.data.remote.clients.TransactionClient
+import com.spendsnap.app.data.remote.clients.UserClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -81,5 +82,11 @@ object NetworkModule {
     @Singleton
     fun provideTransactionClient(retrofit: Retrofit): TransactionClient {
         return retrofit.create(TransactionClient::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserClient(retrofit: Retrofit): UserClient {
+        return retrofit.create(UserClient::class.java)
     }
 }

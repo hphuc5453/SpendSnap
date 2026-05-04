@@ -42,7 +42,7 @@ import coil.compose.AsyncImage
 import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.shared.Utils
-import com.spendsnap.app.ui.camera.TransactionViewModel
+import com.spendsnap.app.view_models.TransactionViewModel
 import com.spendsnap.app.ui.components.HeaderSection
 import com.spendsnap.app.ui.components.LoadingDialog
 

@@ -4,6 +4,8 @@ import com.spendsnap.app.data.remote.repositories.AuthRepository
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.repositories.transactions.TransactionRepository
+import com.spendsnap.app.data.remote.repositories.user.IUserRepository
+import com.spendsnap.app.data.remote.repositories.user.UserRepository
 import com.spendsnap.app.data.remote.services.auth.AuthService
 import com.spendsnap.app.data.remote.services.auth.IAuthService
 import com.spendsnap.app.data.remote.services.transactions.ITransactionService
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindTransactionRepository(
         transactionRepository: TransactionRepository
     ) : ITransactionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(
+        userRepository: UserRepository
+    ) : IUserRepository
 }

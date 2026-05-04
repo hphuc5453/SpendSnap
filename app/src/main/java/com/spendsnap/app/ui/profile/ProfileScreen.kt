@@ -18,12 +18,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -37,30 +42,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.spendsnap.app.ui.auth.AuthViewModel
+import coil.compose.AsyncImage
+import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.ui.components.HeaderSection
+import com.spendsnap.app.view_models.AuthViewModel
+import com.spendsnap.app.view_models.UserViewModel
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hiltViewModel(), onLogoutSuccess: () -> Unit) {
-
-    val logoutState by viewModel.logoutState.collectAsState()
-
-    val handleLogout = {
-        viewModel.logout()
+fun ProfileScreen(
+    modifier: Modifier = Modifier,
+    viewModel: AuthViewModel = hiltViewModel(),
+    userModel: UserViewModel = hiltViewModel(),
+    onLogoutSuccess: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        userModel.getMe()
     }
 
+    val userState by userModel.user.collectAsState()
+    val logoutState by viewModel.logoutState.collectAsState()
+
     LaunchedEffect(logoutState) {
-        when (logoutState) {
-            true -> {
-                onLogoutSuccess()
-                viewModel.resetLoginState()
-            }
-            else -> {}
-        }
+        if (logoutState) onLogoutSuccess()
     }
 
     Column(
@@ -74,7 +82,6 @@ fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Profile Info Section
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -85,29 +92,35 @@ fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hilt
                         .size(120.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF2C2C2E))
-                        .border(
-                            2.dp,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            CircleShape
-                        ),
+                        .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(60.dp)
-                    )
+                    val avatarUrl = (userState as? ApiResult.Success)?.data?.avatar
+                    if (!avatarUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = avatarUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
                 }
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFF5C00)), // Secondary/Orange
+                        .background(Color(0xFFFF5C00)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.Home,
+                        Icons.Default.Edit,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
@@ -117,26 +130,32 @@ fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hilt
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Alex Mercer",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "alex.mercer@viewfinder.io",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
+            when (val result = userState) {
+                is ApiResult.Success -> {
+                    Text(
+                        text = result.data.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = result.data.email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+                is ApiResult.Loading -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                is ApiResult.Error -> Text(text = "Failed to load profile", color = Color.Red)
+                else -> {}
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Money Left Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(40.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFE6D04D)) // Yellow
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE6D04D))
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
@@ -166,36 +185,16 @@ fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Settings Items
-        SettingsItem(
-            icon = Icons.Default.Home,
-            title = "Monthly Budget",
-            subtitle = "Set your monthly spending limits"
-        )
-        SettingsItem(
-            icon = Icons.Default.Home,
-            title = "Linked Accounts",
-            subtitle = "Manage banks and crypto wallets"
-        )
-        SettingsItem(
-            icon = Icons.Default.Notifications,
-            title = "Notification Settings",
-            subtitle = "Alerts, updates, and reminders"
-        )
-        SettingsItem(
-            icon = Icons.Default.Home,
-            title = "Privacy & Security",
-            subtitle = "2FA, password, and data privacy"
-        )
+        SettingsItem(Icons.Default.DateRange, "Monthly Budget", "Set your monthly spending limits")
+        SettingsItem(Icons.Default.AccountBalance, "Linked Accounts", "Manage banks and crypto wallets")
+        SettingsItem(Icons.Default.Notifications, "Notification Settings", "Alerts, updates, and reminders")
+        SettingsItem(Icons.Default.Lock, "Privacy & Security", "2FA, password, and data privacy")
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Sign Out Button
         OutlinedButton(
-            onClick = handleLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            onClick = { viewModel.logout() },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(28.dp),
             border = BorderStroke(1.dp, Color(0xFFFF5C00).copy(alpha = 0.5f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5C00))
@@ -208,29 +207,18 @@ fun ProfileScreen(modifier: Modifier = Modifier, viewModel: AuthViewModel = hilt
 }
 
 @Composable
-fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String
-) {
+private fun SettingsItem(icon: ImageVector, title: String, subtitle: String) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF2C2C2E)),
+                modifier = Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF2C2C2E)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -249,11 +237,7 @@ fun SettingsItem(
                     color = Color.Gray
                 )
             }
-            Icon(
-                Icons.Default.Home,
-                contentDescription = null,
-                tint = Color.Gray
-            )
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
         }
     }
 }
