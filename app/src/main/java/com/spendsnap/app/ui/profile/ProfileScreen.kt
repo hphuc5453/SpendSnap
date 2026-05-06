@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -37,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.ui.components.HeaderSection
 import com.spendsnap.app.view_models.AuthViewModel
@@ -58,7 +61,8 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = hiltViewModel(),
     userModel: UserViewModel = hiltViewModel(),
-    onLogoutSuccess: () -> Unit
+    onLogoutSuccess: () -> Unit,
+    onNavigateToLanguage: () -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         userModel.getMe()
@@ -75,15 +79,12 @@ fun ProfileScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        HeaderSection(modifier = Modifier.padding(horizontal = 8.dp))
-
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(contentAlignment = Alignment.BottomEnd) {
@@ -145,71 +146,76 @@ fun ProfileScreen(
                     )
                 }
                 is ApiResult.Loading -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                is ApiResult.Error -> Text(text = "Failed to load profile", color = Color.Red)
+                is ApiResult.Error -> Text(text = stringResource(R.string.error_load_profile), color = Color.Red)
                 else -> {}
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(40.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFE6D04D))
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = "MONEY LEFT TO SPEND",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Black.copy(alpha = 0.6f),
-                    letterSpacing = 1.sp
-                )
-                Text(
-                    text = "$2,840.50",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.Black,
-                    fontWeight = FontWeight.ExtraBold
-                )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(40.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE6D04D))
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.label_money_left),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Black.copy(alpha = 0.6f),
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "$2,840.50",
+                        style = MaterialTheme.typography.displayMedium,
+                        color = Color.Black,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = stringResource(R.string.label_account_settings),
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.Gray,
+                letterSpacing = 1.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(Icons.Default.Language, stringResource(R.string.settings_language), stringResource(R.string.settings_language_sub), onClick = onNavigateToLanguage)
+            SettingsItem(Icons.Default.AccountBalance, stringResource(R.string.settings_linked_accounts), stringResource(R.string.settings_linked_accounts_sub))
+            SettingsItem(Icons.Default.Notifications, stringResource(R.string.settings_notifications), stringResource(R.string.settings_notifications_sub))
+            SettingsItem(Icons.Default.Lock, stringResource(R.string.settings_privacy), stringResource(R.string.settings_privacy_sub))
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedButton(
+                onClick = { viewModel.logout() },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                border = BorderStroke(1.dp, Color(0xFFFF5C00).copy(alpha = 0.5f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5C00))
+            ) {
+                Text(text = stringResource(R.string.btn_sign_out), fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = Color(0xFFFFFFFF))
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "ACCOUNT SETTINGS",
-            style = MaterialTheme.typography.labelLarge,
-            color = Color.Gray,
-            letterSpacing = 1.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingsItem(Icons.Default.DateRange, "Monthly Budget", "Set your monthly spending limits")
-        SettingsItem(Icons.Default.AccountBalance, "Linked Accounts", "Manage banks and crypto wallets")
-        SettingsItem(Icons.Default.Notifications, "Notification Settings", "Alerts, updates, and reminders")
-        SettingsItem(Icons.Default.Lock, "Privacy & Security", "2FA, password, and data privacy")
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedButton(
-            onClick = { viewModel.logout() },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(1.dp, Color(0xFFFF5C00).copy(alpha = 0.5f)),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5C00))
-        ) {
-            Text(text = "SIGN OUT", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Composable
-private fun SettingsItem(icon: ImageVector, title: String, subtitle: String) {
+private fun SettingsItem(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {

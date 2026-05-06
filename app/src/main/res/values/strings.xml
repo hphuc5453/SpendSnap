@@ -40,4 +40,19 @@
     <string name="currency_symbol">$</string>
     <string name="btn_confirm">CONFIRM</string>
     <string name="btn_retake_photo">RETAKE</string>
+
+    <!-- Profile Screen -->
+    <string name="error_load_profile">Failed to load profile</string>
+    <string name="label_money_left">MONEY LEFT TO SPEND</string>
+    <string name="label_account_settings">ACCOUNT SETTINGS</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_sub">Change your language preference</string>
+    <string name="settings_monthly_budget_sub">Set your monthly spending limits</string>
+    <string name="settings_linked_accounts">Linked Accounts</string>
+    <string name="settings_linked_accounts_sub">Manage banks and crypto wallets</string>
+    <string name="settings_notifications">Notification Settings</string>
+    <string name="settings_notifications_sub">Alerts, updates, and reminders</string>
+    <string name="settings_privacy">Privacy &amp; Security</string>
+    <string name="settings_privacy_sub">2FA, password, and data privacy</string>
+    <string name="btn_sign_out">SIGN OUT</string>
 </resources>

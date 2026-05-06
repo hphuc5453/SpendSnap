@@ -1,5 +1,9 @@
 package com.spendsnap.app
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +23,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,9 +35,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.spendsnap.app.data.local.AuthManager
+import com.spendsnap.app.data.local.LanguageManager
 import com.spendsnap.app.shared.Utils
 import com.spendsnap.app.ui.Screen
 import com.spendsnap.app.ui.auth.LoginScreen
@@ -43,11 +50,13 @@ import com.spendsnap.app.ui.categories.CategoriesScreen
 import com.spendsnap.app.ui.history.HistoryScreen
 import com.spendsnap.app.ui.history.TransactionDetailScreen
 import com.spendsnap.app.ui.home.HomeScreen
+import com.spendsnap.app.ui.settings.SettingsLanguageScreen
 import com.spendsnap.app.ui.theme.SpendSnapTheme
 import com.spendsnap.app.ui.theme.bottomBackground
 import com.spendsnap.app.ui.theme.topBackground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.firstOrNull
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -55,6 +64,14 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var authManager: AuthManager
+
+    override fun attachBaseContext(newBase: Context) {
+        val languageCode = LanguageManager.getSavedLanguage(newBase)
+        val locale = Locale(languageCode)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,9 +84,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("LocalContextConfigurationRead")
 @Composable
 fun MainScreen(authManager: AuthManager) {
     var selectedScreen by remember { mutableStateOf<Screen?>(null) }
+    val context = LocalContext.current
+    var languageCode by remember { mutableStateOf(LanguageManager.getSavedLanguage(context)) }
 
     LaunchedEffect(Unit) {
         val token = authManager.accessToken.firstOrNull()
@@ -84,54 +104,79 @@ fun MainScreen(authManager: AuthManager) {
         return
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(topBackground, bottomBackground)
-                )
-            ),
-        containerColor = Color.Transparent,
-        bottomBar = {
-            if (selectedScreen != Screen.Login && selectedScreen != Screen.Signup && selectedScreen != Screen.TransactionDetail) {
-                SpendSnapBottomNav(
-                    currentScreen = selectedScreen!!,
-                    onScreenSelected = { selectedScreen = it }
-                )
-            }
+    val localizedContext = remember(languageCode) {
+        val locale = Locale(languageCode)
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        val localeResources = context.createConfigurationContext(config).resources
+        object : ContextWrapper(context) {
+            override fun getResources() = localeResources
         }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            Utils.AnimatedScreenTransition(targetState = selectedScreen) { screen ->
-                when (screen) {
-                    Screen.Login -> LoginScreen(
-                        onLoginSuccess = { selectedScreen = Screen.Camera },
-                        onSignupClick = { selectedScreen = Screen.Signup }
+    }
+
+    CompositionLocalProvider(LocalContext provides localizedContext) {
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(topBackground, bottomBackground)
                     )
-
-                    Screen.Signup -> SignupScreen(
-                        onSignupSuccess = { selectedScreen = Screen.Login },
-                        onBackToLogin = { selectedScreen = Screen.Login }
+                ),
+            containerColor = Color.Transparent,
+            bottomBar = {
+                val hideNav = selectedScreen == Screen.Login
+                    || selectedScreen == Screen.Signup
+                    || selectedScreen == Screen.TransactionDetail
+                    || selectedScreen == Screen.SettingsLanguage
+                if (!hideNav) {
+                    SpendSnapBottomNav(
+                        currentScreen = selectedScreen!!,
+                        onScreenSelected = { selectedScreen = it }
                     )
+                }
+            }
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding)) {
+                Utils.AnimatedScreenTransition(targetState = selectedScreen) { screen ->
+                    when (screen) {
+                        Screen.Login -> LoginScreen(
+                            onLoginSuccess = { selectedScreen = Screen.Camera },
+                            onSignupClick = { selectedScreen = Screen.Signup }
+                        )
 
-                    Screen.Home -> HomeScreen()
-                    Screen.History -> HistoryScreen(onTransactionClick = {
-                        selectedScreen = Screen.TransactionDetail
-                    })
+                        Screen.Signup -> SignupScreen(
+                            onSignupSuccess = { selectedScreen = Screen.Login },
+                            onBackToLogin = { selectedScreen = Screen.Login }
+                        )
 
-                    Screen.Categories -> CategoriesScreen()
-                    Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
-                        onLogoutSuccess = { selectedScreen = Screen.Login }
-                    )
+                        Screen.Home -> HomeScreen()
+                        Screen.History -> HistoryScreen(onTransactionClick = {
+                            selectedScreen = Screen.TransactionDetail
+                        })
 
-                    Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
-                        selectedScreen = Screen.History
-                    })
+                        Screen.Categories -> CategoriesScreen()
+                        Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
+                            onLogoutSuccess = { selectedScreen = Screen.Login },
+                            onNavigateToLanguage = { selectedScreen = Screen.SettingsLanguage }
+                        )
 
-                    Screen.Camera -> CameraScreen()
+                        Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
+                            selectedScreen = Screen.History
+                        })
 
-                    else -> {}
+                        Screen.SettingsLanguage -> SettingsLanguageScreen(
+                            onBack = { selectedScreen = Screen.Profile },
+                            onLanguageChanged = { code ->
+                                languageCode = code
+                                selectedScreen = Screen.Profile
+                            }
+                        )
+
+                        Screen.Camera -> CameraScreen()
+
+                        else -> {}
+                    }
                 }
             }
         }

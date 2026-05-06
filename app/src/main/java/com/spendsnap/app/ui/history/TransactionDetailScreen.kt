@@ -56,8 +56,8 @@ fun TransactionDetailScreen(
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Custom Detail Header
         DetailHeader(onBack = onBack)
+        // Custom Detail Header
 
         Spacer(modifier = Modifier.height(16.dp))
 

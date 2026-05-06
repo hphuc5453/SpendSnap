@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.spendsnap.app.data.local.dao.UserDao
 import com.spendsnap.app.data.local.entities.UserEntity
 
-@Database(entities = [Expense::class, UserEntity::class], version = 2, exportSchema = false)
+@Database(entities = [Expense::class, UserEntity::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun userDao(): UserDao

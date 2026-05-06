@@ -36,6 +36,15 @@ class UserRepository @Inject constructor(
         return result
     }
 
+    override suspend fun updateLanguage(language: String): ApiResult<UserResponse> {
+        val result = userService.updateLanguage(language)
+        if (result is ApiResult.Success) {
+            memoryCache = result.data
+            userDao.insertUser(result.data.toEntity())
+        }
+        return result
+    }
+
     override suspend fun clearCache() {
         memoryCache = null
         userDao.clearUser()

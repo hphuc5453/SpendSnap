@@ -68,7 +68,6 @@ fun HistoryScreen(
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        HeaderSection(modifier = Modifier.padding(horizontal = 8.dp))
 
         // Tính tổng tiền từ danh sách giao dịch (nếu muốn)
         val totalSpent = (transactionsState as? ApiResult.Success)?.data?.sumOf { it.amount } ?: 0.0

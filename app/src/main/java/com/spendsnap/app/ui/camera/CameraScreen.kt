@@ -74,6 +74,7 @@ import com.spendsnap.app.ui.components.LoadingDialog
 import com.spendsnap.app.ui.components.MessageDialog
 import com.spendsnap.app.ui.shared.HeaderSection
 import com.spendsnap.app.view_models.TransactionViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

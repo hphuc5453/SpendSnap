@@ -12,6 +12,7 @@ sealed class Screen(@DrawableRes val icon: Int? = null, val label: String? = nul
     object Categories : Screen(R.drawable.outline_category_24, "Categories")
     object Profile : Screen(R.drawable.outline_person_apron_24, "Profile")
     object TransactionDetail : Screen()
+    object SettingsLanguage : Screen()
 }
 
 val bottomNavItems = listOf(

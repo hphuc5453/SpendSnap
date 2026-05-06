@@ -33,8 +33,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp)
     ) {
-        HeaderSection()
-
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Text(
                 text = "Stats",

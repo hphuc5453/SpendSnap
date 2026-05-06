@@ -34,8 +34,6 @@ fun CategoriesScreen(modifier: Modifier = Modifier) {
             .verticalScroll(rememberScrollState())
     ) {
 
-        HeaderSection(modifier = Modifier.padding(horizontal = (8).dp)) // Adjust for parent padding
-
         Text(
             text = "Categories",
             style = MaterialTheme.typography.displayMedium,
