@@ -76,7 +76,7 @@ fun SettingsLanguageScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        HeaderSection(onBack)
+        HeaderSection(stringResource(R.string.settings_language), onBack)
 
         LazyColumn(
             modifier = Modifier

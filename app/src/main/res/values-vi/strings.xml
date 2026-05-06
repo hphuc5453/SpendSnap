@@ -55,4 +55,24 @@
     <string name="settings_privacy">Quyền riêng tư &amp; Bảo mật</string>
     <string name="settings_privacy_sub">2FA, mật khẩu và dữ liệu riêng tư</string>
     <string name="btn_sign_out">ĐĂNG XUẤT</string>
+
+    <!-- Màn hình Danh mục -->
+    <string name="title_categories">Danh mục</string>
+    <string name="subtitle_categories">Phân loại các khoản chi tiêu của bạn.</string>
+    <string name="label_most_used">DÙNG NHIỀU NHẤT</string>
+    <string name="label_new_category">MỚI</string>
+    <string name="title_category_limits">Hạn mức danh mục</string>
+    <string name="btn_manage_all">QUẢN LÝ TẤT CẢ</string>
+
+    <!-- Màn hình Thêm danh mục -->
+    <string name="label_category_name">TÊN DANH MỤC</string>
+    <string name="placeholder_category_name">vd. Ăn khuya</string>
+    <string name="label_select_icon">CHỌN BIỂU TƯỢNG</string>
+    <string name="label_monthly_budget_limit">HẠN MỨC NGÂN SÁCH THÁNG</string>
+    <string name="hint_monthly_budget">Giới hạn chi tiêu hàng tháng để theo dõi mục tiêu hiệu quả hơn.</string>
+    <string name="label_smart_alerts">CẢNH BÁO THÔNG MINH</string>
+    <string name="value_smart_alerts">Thông báo khi đạt 80%</string>
+    <string name="label_visibility">HIỂN THỊ</string>
+    <string name="value_visibility">Riêng tư</string>
+    <string name="btn_create_category">TẠO DANH MỤC</string>
 </resources>

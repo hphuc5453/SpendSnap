@@ -2,12 +2,16 @@ package com.spendsnap.app.di
 
 import com.spendsnap.app.data.remote.repositories.AuthRepository
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
+import com.spendsnap.app.data.remote.repositories.categories.CategoryRepository
+import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.repositories.transactions.TransactionRepository
 import com.spendsnap.app.data.remote.repositories.user.IUserRepository
 import com.spendsnap.app.data.remote.repositories.user.UserRepository
 import com.spendsnap.app.data.remote.services.auth.AuthService
 import com.spendsnap.app.data.remote.services.auth.IAuthService
+import com.spendsnap.app.data.remote.services.categories.CategoryService
+import com.spendsnap.app.data.remote.services.categories.ICategoryService
 import com.spendsnap.app.data.remote.services.transactions.ITransactionService
 import com.spendsnap.app.data.remote.services.transactions.TransactionService
 import dagger.Binds
@@ -49,4 +53,16 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         userRepository: UserRepository
     ) : IUserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryService(
+        categoryService: CategoryService
+    ): ICategoryService
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        categoryRepository: CategoryRepository
+    ): ICategoryRepository
 }

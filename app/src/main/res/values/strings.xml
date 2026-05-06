@@ -55,4 +55,24 @@
     <string name="settings_privacy">Privacy &amp; Security</string>
     <string name="settings_privacy_sub">2FA, password, and data privacy</string>
     <string name="btn_sign_out">SIGN OUT</string>
+
+    <!-- Categories Screen -->
+    <string name="title_categories">Categories</string>
+    <string name="subtitle_categories">Organize your financial snapshots.</string>
+    <string name="label_most_used">MOST USED</string>
+    <string name="label_new_category">NEW</string>
+    <string name="title_category_limits">Category Limits</string>
+    <string name="btn_manage_all">MANAGE ALL</string>
+
+    <!-- Add New Category Screen -->
+    <string name="label_category_name">CATEGORY NAME</string>
+    <string name="placeholder_category_name">e.g. Midnight Dining</string>
+    <string name="label_select_icon">SELECT SIGNATURE ICON</string>
+    <string name="label_monthly_budget_limit">MONTHLY BUDGET LIMIT</string>
+    <string name="hint_monthly_budget">Limit your monthly spend to track goals more effectively.</string>
+    <string name="label_smart_alerts">SMART ALERTS</string>
+    <string name="value_smart_alerts">Notify at 80%</string>
+    <string name="label_visibility">VISIBILITY</string>
+    <string name="value_visibility">Private Vault</string>
+    <string name="btn_create_category">CREATE CATEGORY</string>
 </resources>

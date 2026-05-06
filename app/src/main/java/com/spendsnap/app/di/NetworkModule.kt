@@ -4,6 +4,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.spendsnap.app.BuildConfig
 import com.spendsnap.app.data.local.AuthManager
 import com.spendsnap.app.data.remote.clients.AuthClient
+import com.spendsnap.app.data.remote.clients.CategoryClient
 import com.spendsnap.app.data.remote.clients.TransactionClient
 import com.spendsnap.app.data.remote.clients.UserClient
 import dagger.Module
@@ -88,5 +89,11 @@ object NetworkModule {
     @Singleton
     fun provideUserClient(retrofit: Retrofit): UserClient {
         return retrofit.create(UserClient::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryClient(retrofit: Retrofit): CategoryClient {
+        return retrofit.create(CategoryClient::class.java)
     }
 }

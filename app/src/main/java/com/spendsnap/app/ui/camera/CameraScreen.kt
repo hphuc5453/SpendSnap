@@ -124,7 +124,6 @@ fun CameraScreen(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)) {
         Column {
-            HeaderSection()
             if (hasCameraPermission) {
                 if (capturedUri == null) {
                     CameraView(

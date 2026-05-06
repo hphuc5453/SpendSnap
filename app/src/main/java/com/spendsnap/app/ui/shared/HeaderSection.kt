@@ -19,24 +19,29 @@ import androidx.compose.ui.unit.dp
 import com.spendsnap.app.R
 
 @Composable
-fun HeaderSection(onBack : (() -> Unit)? = null) {
+fun HeaderSection(
+    title: String = "",
+    onBack: (() -> Unit)? = null
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 8.dp)
     ) {
-        IconButton(
-            onClick = onBack ?: {},
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
-                tint = Color.White
-            )
+        if (onBack != null) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.cd_back),
+                    tint = Color.White
+                )
+            }
         }
         Text(
-            text = stringResource(R.string.settings_language),
+            text = title,
             style = MaterialTheme.typography.titleLarge,
             color = Color.White,
             fontWeight = FontWeight.Bold,

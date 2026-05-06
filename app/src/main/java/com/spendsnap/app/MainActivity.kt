@@ -46,6 +46,7 @@ import com.spendsnap.app.ui.auth.LoginScreen
 import com.spendsnap.app.ui.auth.SignupScreen
 import com.spendsnap.app.ui.bottomNavItems
 import com.spendsnap.app.ui.camera.CameraScreen
+import com.spendsnap.app.ui.categories.AddNewCategoryScreen
 import com.spendsnap.app.ui.categories.CategoriesScreen
 import com.spendsnap.app.ui.history.HistoryScreen
 import com.spendsnap.app.ui.history.TransactionDetailScreen
@@ -155,7 +156,10 @@ fun MainScreen(authManager: AuthManager) {
                             selectedScreen = Screen.TransactionDetail
                         })
 
-                        Screen.Categories -> CategoriesScreen()
+                        Screen.Categories -> CategoriesScreen( onNavigateToAddNewCategory = {
+                            selectedScreen = Screen.AddNewCategory
+                        })
+
                         Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
                             onLogoutSuccess = { selectedScreen = Screen.Login },
                             onNavigateToLanguage = { selectedScreen = Screen.SettingsLanguage }
@@ -174,6 +178,10 @@ fun MainScreen(authManager: AuthManager) {
                         )
 
                         Screen.Camera -> CameraScreen()
+
+                        Screen.AddNewCategory -> AddNewCategoryScreen(onBack = {
+                            selectedScreen = Screen.Categories
+                        })
 
                         else -> {}
                     }

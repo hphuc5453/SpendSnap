@@ -3,6 +3,7 @@ package com.spendsnap.app.di
 import android.content.Context
 import androidx.room.Room
 import com.spendsnap.app.data.AppDatabase
+import com.spendsnap.app.data.local.dao.CategoryDao
 import com.spendsnap.app.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -30,5 +31,10 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(database: AppDatabase): UserDao {
         return database.userDao()
+    }
+
+    @Provides
+    fun provideCategoryDao(database: AppDatabase): CategoryDao {
+        return database.categoryDao()
     }
 }
