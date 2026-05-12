@@ -41,7 +41,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://your-api-domain.com/\"")
+            buildConfigField("String", "BASE_URL", "\"https://spendsnapbe.onrender.com/\"")
         }
     }
     compileOptions {

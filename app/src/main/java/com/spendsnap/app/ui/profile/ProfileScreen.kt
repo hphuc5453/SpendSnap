@@ -169,7 +169,7 @@ fun ProfileScreen(
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "$2,840.50",
+                        text = "0",
                         style = MaterialTheme.typography.displayMedium,
                         color = Color.Black,
                         fontWeight = FontWeight.ExtraBold
