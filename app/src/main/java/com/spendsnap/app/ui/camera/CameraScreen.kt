@@ -17,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -70,9 +72,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.ui.components.AppStatusDialog
+import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.components.LoadingDialog
-import com.spendsnap.app.ui.components.MessageDialog
 import com.spendsnap.app.ui.shared.HeaderSection
+import com.spendsnap.app.view_models.CategoryViewModel
 import com.spendsnap.app.view_models.TransactionViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
@@ -82,11 +86,12 @@ import java.util.concurrent.Executors
 @Composable
 fun CameraScreen(
     modifier: Modifier = Modifier,
-    viewModel: TransactionViewModel = hiltViewModel()
+    viewModel: TransactionViewModel = hiltViewModel(),
+    categoryViewModel: CategoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
-    
+
     var hasCameraPermission by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -94,31 +99,73 @@ fun CameraScreen(
     )
 
     val createTransactionState by viewModel.createTransactionState.collectAsState()
+    val categoriesState by categoryViewModel.categoriesState.collectAsState()
+    val categoryIconsState by categoryViewModel.categoryIconsState.collectAsState()
     val isLoading = createTransactionState is ApiResult.Loading
 
     var showErrorDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var selectedCategoryId by remember { mutableStateOf("") }
+    var selectedKind by remember { mutableStateOf("expense") }
+    var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    var amountText by remember { mutableStateOf("") }
 
     LoadingDialog(isLoading = isLoading)
-    MessageDialog(
+
+    AppStatusDialog(
         show = showErrorDialog,
+        type = DialogType.Error,
+        title = "Có lỗi xảy ra",
         message = errorMessage,
         onDismiss = { showErrorDialog = false }
     )
 
+    AppStatusDialog(
+        show = showSuccessDialog,
+        type = DialogType.Success,
+        title = "Thành công!",
+        message = "Giao dịch của bạn đã được ghi lại chính xác.",
+        onDismiss = {
+            showSuccessDialog = false
+            capturedUri = null
+            amountText = ""
+        }
+    )
+
     LaunchedEffect(Unit) {
         launcher.launch(Manifest.permission.CAMERA)
+        categoryViewModel.getCategories()
+        categoryViewModel.getCategoryIcons()
     }
 
-    LaunchedEffect(createTransactionState) {
-        if (createTransactionState is ApiResult.Error) {
-            errorMessage = (createTransactionState as ApiResult.Error).exception.message ?: "Unknown Error"
-            showErrorDialog = true
+    val allCategories = (categoriesState as? ApiResult.Success)?.data.orEmpty()
+    val iconMap = (categoryIconsState as? ApiResult.Success)?.data
+        ?.associate { it.slug to it.icon }
+        .orEmpty()
+    val filteredCategories = allCategories.filter { it.kind == selectedKind }
+
+    LaunchedEffect(selectedKind, filteredCategories) {
+        val stillValid = filteredCategories.any { it.id == selectedCategoryId }
+        if (!stillValid) {
+            selectedCategoryId = filteredCategories.firstOrNull()?.id.orEmpty()
         }
     }
 
-    var capturedUri by remember { mutableStateOf<Uri?>(null) }
-    var amountText by remember { mutableStateOf("") }
+    LaunchedEffect(createTransactionState) {
+        when (val state = createTransactionState) {
+            is ApiResult.Error -> {
+                errorMessage = state.exception.message ?: "Unknown Error"
+                showErrorDialog = true
+                viewModel.resetCreateState()
+            }
+            is ApiResult.Success -> {
+                showSuccessDialog = true
+                viewModel.resetCreateState()
+            }
+            else -> {}
+        }
+    }
 
     Box(modifier = modifier
         .fillMaxSize()
@@ -136,19 +183,31 @@ fun CameraScreen(
                         uri = capturedUri!!,
                         amount = amountText,
                         onAmountChange = { amountText = it },
+                        categories = filteredCategories,
+                        iconMap = iconMap,
+                        selectedCategoryId = selectedCategoryId,
+                        onCategorySelected = { selectedCategoryId = it },
+                        selectedKind = selectedKind,
+                        onKindSelected = { selectedKind = it },
                         onConfirm = {
                             val amountValue = amountText.toDoubleOrNull()
                             if (amountValue == null || amountValue <= 0) {
                                 Toast.makeText(context, "Vui lòng nhập số tiền hợp lệ", Toast.LENGTH_SHORT).show()
                                 return@CapturePreview
                             }
-                            val imageFile = capturedUri?.path?.let { File(it) }
-                            if (imageFile != null && imageFile.exists()) {
-                                viewModel.createTransaction(imageFile, amountValue)
+                            if (selectedCategoryId.isEmpty()) {
+                                Toast.makeText(context, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show()
+                                return@CapturePreview
                             }
+                            val imageFile = capturedUri?.path?.let { File(it) }?.takeIf { it.exists() }
+                            viewModel.createTransaction(
+                                amount = amountValue,
+                                categoryId = selectedCategoryId,
+                                imageFile = imageFile
+                            )
                         },
-                        onRetake = { 
-                            capturedUri = null 
+                        onRetake = {
+                            capturedUri = null
                             amountText = ""
                         }
                     )
@@ -219,6 +278,12 @@ fun CapturePreview(
     uri: Uri,
     amount: String,
     onAmountChange: (String) -> Unit,
+    categories: List<com.spendsnap.app.data.remote.models.CategoryResponse>,
+    iconMap: Map<String, String>,
+    selectedCategoryId: String,
+    onCategorySelected: (String) -> Unit,
+    selectedKind: String,
+    onKindSelected: (String) -> Unit,
     onConfirm: () -> Unit,
     onRetake: () -> Unit
 ) {
@@ -229,7 +294,7 @@ fun CapturePreview(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(160.dp)
                 .padding(top = 12.dp)
                 .clip(RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center
@@ -237,7 +302,20 @@ fun CapturePreview(
             AsyncImage(model = uri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        KindTabs(selectedKind = selectedKind, onKindSelected = onKindSelected)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        CategoryPicker(
+            categories = categories,
+            iconMap = iconMap,
+            selectedCategoryId = selectedCategoryId,
+            onCategorySelected = onCategorySelected
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(text = "ENTERING AMOUNT", style = MaterialTheme.typography.labelMedium, color = Color.Gray, letterSpacing = 1.sp)
 
@@ -329,6 +407,110 @@ fun NumericKeypad(
                             Text(text = key, style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color(0xFF1C1C1E))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        listOf("expense" to "EXPENSE", "income" to "INCOME").forEach { (kind, label) ->
+            val isSelected = kind == selectedKind
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .clickable { onKindSelected(kind) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = label,
+                    color = if (isSelected) Color.Black else Color.Gray,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryPicker(
+    categories: List<com.spendsnap.app.data.remote.models.CategoryResponse>,
+    iconMap: Map<String, String>,
+    selectedCategoryId: String,
+    onCategorySelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "CATEGORY",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray,
+            letterSpacing = 1.sp
+        )
+        Text(
+            text = "SEE ALL",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    if (categories.isEmpty()) {
+        Text(
+            text = "Không có danh mục",
+            color = Color.Gray,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            categories.forEach { category ->
+                val isSelected = category.id == selectedCategoryId
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onCategorySelected(category.id) }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFF1C1C1E)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = iconMap[category.icon] ?: "📦",
+                            fontSize = 24.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = category.name.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

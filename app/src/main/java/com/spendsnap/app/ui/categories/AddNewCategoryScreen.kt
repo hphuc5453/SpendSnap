@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.ui.components.AppStatusDialog
+import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.shared.HeaderSection
 import com.spendsnap.app.ui.shared.TextFieldCommon
 import com.spendsnap.app.view_models.CategoryViewModel
@@ -46,7 +48,9 @@ fun AddNewCategoryScreen(
     val createCategoryState by viewModel.createCategoryState.collectAsState()
     val categoryIconsState by viewModel.categoryIconsState.collectAsState()
     var showSuccessDialog by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var apiErrorMessage by remember { mutableStateOf("") }
+    var validationError by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.getCategoryIcons()
@@ -67,25 +71,29 @@ fun AddNewCategoryScreen(
                 viewModel.resetCreateState()
             }
             is ApiResult.Error -> {
-                errorMessage = state.exception.message ?: "Tạo danh mục thất bại"
+                apiErrorMessage = state.exception.message ?: "Tạo danh mục thất bại"
+                showErrorDialog = true
                 viewModel.resetCreateState()
             }
             else -> {}
         }
     }
 
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { showSuccessDialog = false; onBack() },
-            title = { Text("Thành công") },
-            text = { Text("Danh mục đã được tạo thành công.") },
-            confirmButton = {
-                TextButton(onClick = { showSuccessDialog = false; onBack() }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
+    AppStatusDialog(
+        show = showSuccessDialog,
+        type = DialogType.Success,
+        title = "Thành công!",
+        message = "Danh mục đã được tạo thành công.",
+        onDismiss = { showSuccessDialog = false; onBack() }
+    )
+
+    AppStatusDialog(
+        show = showErrorDialog,
+        type = DialogType.Error,
+        title = "Có lỗi xảy ra",
+        message = apiErrorMessage,
+        onDismiss = { showErrorDialog = false }
+    )
 
     Column(
         modifier = modifier
@@ -263,9 +271,9 @@ fun AddNewCategoryScreen(
                 )
             }
 
-            if (errorMessage.isNotEmpty()) {
+            if (validationError.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(text = errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(text = validationError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -284,11 +292,11 @@ fun AddNewCategoryScreen(
                         valid = false
                     }
                     if (selectedIconSlug.isEmpty()) {
-                        errorMessage = "Vui lòng chọn icon."
+                        validationError = "Vui lòng chọn icon."
                         valid = false
                     }
                     if (valid) {
-                        errorMessage = ""
+                        validationError = ""
                         viewModel.createCategory(
                             name = categoryName.trim(),
                             kind = selectedType,

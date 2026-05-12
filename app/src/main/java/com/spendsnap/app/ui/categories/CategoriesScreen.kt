@@ -45,7 +45,8 @@ data class Category(
     val icon: String,
     val color: Color,
     val type: String = "EXPENSE",
-    val limitBudget: Double = 0.0
+    val limitBudget: Double = 0.0,
+    val isMostUsed: Boolean = false
 )
 
 fun CategoryResponse.toCategory(index: Int, iconMap: Map<String, String>) = Category(
@@ -53,7 +54,8 @@ fun CategoryResponse.toCategory(index: Int, iconMap: Map<String, String>) = Cate
     name = name,
     icon = iconMap[icon] ?: FALLBACK_ICON,
     color = categoryColors[index % categoryColors.size],
-    type = kind
+    type = kind,
+    isMostUsed = isMostUsed
 )
 
 @Composable
@@ -100,7 +102,7 @@ fun CategoriesScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        MostUsedCategoryCard(categories.firstOrNull())
+        MostUsedCategoryCard(categories.firstOrNull { it.isMostUsed } ?: categories.firstOrNull())
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -3,7 +3,7 @@ package com.spendsnap.app.view_models
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendsnap.app.data.remote.models.TransactionRequest
-import com.spendsnap.app.data.remote.models.TransactionResponse
+import com.spendsnap.app.data.remote.models.TransactionsListResponse
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.services.ApiResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,8 +22,8 @@ class TransactionViewModel @Inject constructor(
     private val _createTransactionState = MutableStateFlow<ApiResult<Unit>?>(null)
     val createTransactionState: StateFlow<ApiResult<Unit>?> = _createTransactionState.asStateFlow()
 
-    private val _transactionsState = MutableStateFlow<ApiResult<List<TransactionResponse>>?>(null)
-    val transactionsState: StateFlow<ApiResult<List<TransactionResponse>>?> = _transactionsState.asStateFlow()
+    private val _transactionsState = MutableStateFlow<ApiResult<TransactionsListResponse>?>(null)
+    val transactionsState: StateFlow<ApiResult<TransactionsListResponse>?> = _transactionsState.asStateFlow()
 
     fun getTransactions() {
         viewModelScope.launch {
@@ -33,16 +33,21 @@ class TransactionViewModel @Inject constructor(
         }
     }
 
-    fun createTransaction(imageFile: File, amount: Double) {
+    fun createTransaction(amount: Double, categoryId: String, imageFile: File? = null) {
         viewModelScope.launch {
             _createTransactionState.value = ApiResult.Loading(true)
             val result = transactionRepository.createTransaction(
                 TransactionRequest(
-                    imageFile,
-                    amount
+                    amount = amount,
+                    categoryId = categoryId,
+                    file = imageFile
                 )
             )
             _createTransactionState.value = result
         }
+    }
+
+    fun resetCreateState() {
+        _createTransactionState.value = null
     }
 }

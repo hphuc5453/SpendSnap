@@ -2,7 +2,7 @@ package com.spendsnap.app.data.remote.services.transactions
 
 import com.spendsnap.app.data.remote.clients.TransactionClient
 import com.spendsnap.app.data.remote.models.TransactionRequest
-import com.spendsnap.app.data.remote.models.TransactionResponse
+import com.spendsnap.app.data.remote.models.TransactionsListResponse
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.data.remote.services.BaseService
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -15,16 +15,19 @@ class TransactionService @Inject constructor(
     private val transactionClient: TransactionClient
 ) : BaseService(), ITransactionService {
     override suspend fun createTransaction(request: TransactionRequest): ApiResult<Unit> {
-        val imageFile = request.file
-        val requestFile = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-        val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
+        val plainText = "text/plain".toMediaTypeOrNull()
+        val amountPart = request.amount.toString().toRequestBody(plainText)
+        val categoryIdPart = request.categoryId.toRequestBody(plainText)
 
-        val amountPart = request.amount.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+        val imagePart = request.file?.let { file ->
+            val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("image", file.name, requestFile)
+        }
 
-        return safeApiCall { transactionClient.createTransaction(imagePart, amountPart) }
+        return safeApiCall { transactionClient.createTransaction(amountPart, categoryIdPart, imagePart) }
     }
 
-    override suspend fun getTransactions(): ApiResult<List<TransactionResponse>> {
+    override suspend fun getTransactions(): ApiResult<TransactionsListResponse> {
         return safeApiCall { transactionClient.getTransactions() }
     }
 }

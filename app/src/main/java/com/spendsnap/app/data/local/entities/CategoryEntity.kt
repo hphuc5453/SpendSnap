@@ -12,7 +12,8 @@ data class CategoryEntity(
     val kind: String,
     val icon: String,
     val color: String? = null,
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    val isMostUsed: Boolean = false
 )
 
 fun CategoryEntity.toCategoryResponse() = CategoryResponse(
@@ -21,7 +22,8 @@ fun CategoryEntity.toCategoryResponse() = CategoryResponse(
     kind = kind,
     icon = icon,
     color = color,
-    isDefault = isDefault
+    isDefault = isDefault,
+    isMostUsed = isMostUsed
 )
 
 fun CategoryResponse.toCategoryEntity() = CategoryEntity(
@@ -30,5 +32,6 @@ fun CategoryResponse.toCategoryEntity() = CategoryEntity(
     kind = kind,
     icon = icon,
     color = color,
-    isDefault = isDefault
+    isDefault = isDefault,
+    isMostUsed = isMostUsed
 )

@@ -4,6 +4,8 @@ import com.spendsnap.app.data.remote.repositories.AuthRepository
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
 import com.spendsnap.app.data.remote.repositories.categories.CategoryRepository
 import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
+import com.spendsnap.app.data.remote.repositories.statistics.IStatisticsRepository
+import com.spendsnap.app.data.remote.repositories.statistics.StatisticsRepository
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.repositories.transactions.TransactionRepository
 import com.spendsnap.app.data.remote.repositories.user.IUserRepository
@@ -12,6 +14,8 @@ import com.spendsnap.app.data.remote.services.auth.AuthService
 import com.spendsnap.app.data.remote.services.auth.IAuthService
 import com.spendsnap.app.data.remote.services.categories.CategoryService
 import com.spendsnap.app.data.remote.services.categories.ICategoryService
+import com.spendsnap.app.data.remote.services.statistics.IStatisticsService
+import com.spendsnap.app.data.remote.services.statistics.StatisticsService
 import com.spendsnap.app.data.remote.services.transactions.ITransactionService
 import com.spendsnap.app.data.remote.services.transactions.TransactionService
 import dagger.Binds
@@ -65,4 +69,16 @@ abstract class RepositoryModule {
     abstract fun bindCategoryRepository(
         categoryRepository: CategoryRepository
     ): ICategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStatisticsService(
+        statisticsService: StatisticsService
+    ): IStatisticsService
+
+    @Binds
+    @Singleton
+    abstract fun bindStatisticsRepository(
+        statisticsRepository: StatisticsRepository
+    ): IStatisticsRepository
 }

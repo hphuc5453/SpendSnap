@@ -55,8 +55,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.ui.components.AppStatusDialog
+import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.components.LoadingDialog
-import com.spendsnap.app.ui.components.MessageDialog
 import com.spendsnap.app.ui.theme.inputBackground
 import com.spendsnap.app.view_models.AuthViewModel
 
@@ -82,8 +83,10 @@ fun LoginScreen(
 
     // Dialog Components
     LoadingDialog(isLoading = isLoading)
-    MessageDialog(
+    AppStatusDialog(
         show = showErrorDialog,
+        type = DialogType.Error,
+        title = "Có lỗi xảy ra",
         message = errorMessage,
         onDismiss = { showErrorDialog = false }
     )

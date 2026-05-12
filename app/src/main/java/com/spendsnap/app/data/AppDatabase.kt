@@ -11,7 +11,7 @@ import com.spendsnap.app.data.local.entities.UserEntity
 
 @Database(
     entities = [Expense::class, UserEntity::class, CategoryEntity::class, CategoryIconEntity::class],
-    version = 7,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

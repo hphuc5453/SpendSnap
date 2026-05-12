@@ -11,7 +11,8 @@ data class CategoryResponse(
     val kind: String = "expense",
     val icon: String = "other",
     val color: String? = null,
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    val isMostUsed: Boolean = false
 )
 
 @Serializable

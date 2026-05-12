@@ -42,6 +42,7 @@ import coil.compose.AsyncImage
 import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.shared.Utils
+import com.spendsnap.app.view_models.CategoryViewModel
 import com.spendsnap.app.view_models.TransactionViewModel
 import com.spendsnap.app.ui.components.HeaderSection
 import com.spendsnap.app.ui.components.LoadingDialog
@@ -50,14 +51,21 @@ import com.spendsnap.app.ui.components.LoadingDialog
 fun HistoryScreen(
     modifier: Modifier = Modifier,
     onTransactionClick: (TransactionResponse) -> Unit = {},
-    viewModel: TransactionViewModel = hiltViewModel()
+    viewModel: TransactionViewModel = hiltViewModel(),
+    categoryViewModel: CategoryViewModel = hiltViewModel()
 ) {
     val transactionsState by viewModel.transactionsState.collectAsState()
+    val categoryIconsState by categoryViewModel.categoryIconsState.collectAsState()
 
     // Gọi API khi màn hình được tạo
     LaunchedEffect(Unit) {
         viewModel.getTransactions()
+        categoryViewModel.getCategoryIcons()
     }
+
+    val iconMap = (categoryIconsState as? ApiResult.Success)?.data
+        ?.associate { it.slug to it.icon }
+        .orEmpty()
 
     LoadingDialog(isLoading = transactionsState is ApiResult.Loading)
 
@@ -69,9 +77,8 @@ fun HistoryScreen(
             .verticalScroll(rememberScrollState())
     ) {
 
-        // Tính tổng tiền từ danh sách giao dịch (nếu muốn)
-        val totalSpent = (transactionsState as? ApiResult.Success)?.data?.sumOf { it.amount } ?: 0.0
-        MoneyLeftCard(totalSpent = totalSpent)
+        val successData = (transactionsState as? ApiResult.Success)?.data
+        MoneyLeftCard(totalSpent = successData?.totalSpent ?: 0.0)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -88,18 +95,18 @@ fun HistoryScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        when (transactionsState) {
+        when (val state = transactionsState) {
             is ApiResult.Success -> {
-                val transactions = (transactionsState as ApiResult.Success).data
+                val transactions = state.data.transactions
                 if (transactions.isEmpty()) {
                     EmptyState()
                 } else {
-                    MomentsGrid(transactions, onTransactionClick)
+                    MomentsGrid(transactions, iconMap, onTransactionClick)
                 }
             }
             is ApiResult.Error -> {
                 Text(
-                    text = "Lỗi: ${(transactionsState as ApiResult.Error).exception.message}",
+                    text = "Lỗi: ${state.exception.message}",
                     color = Color.Red,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
@@ -161,6 +168,7 @@ fun MoneyLeftCard(totalSpent: Double) {
 @Composable
 fun MomentsGrid(
     transactions: List<TransactionResponse>,
+    iconMap: Map<String, String>,
     onTransactionClick: (TransactionResponse) -> Unit
 ) {
     Column {
@@ -171,12 +179,14 @@ fun MomentsGrid(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     MomentItem(
                         transaction = group[0],
+                        iconMap = iconMap,
                         modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick(group[0]) }
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     if (group.size >= 2) {
                         MomentItem(
                             transaction = group[1],
+                            iconMap = iconMap,
                             modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick(group[1]) }
                         )
                     } else {
@@ -190,6 +200,7 @@ fun MomentsGrid(
                 Spacer(modifier = Modifier.height(16.dp))
                 MomentItem(
                     transaction = group[2],
+                    iconMap = iconMap,
                     isLarge = true,
                     modifier = Modifier.fillMaxWidth().height(300.dp).clickable { onTransactionClick(group[2]) }
                 )
@@ -201,12 +212,14 @@ fun MomentsGrid(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     MomentItem(
                         transaction = group[3],
+                        iconMap = iconMap,
                         modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick(group[3]) }
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     if (group.size >= 5) {
                         MomentItem(
                             transaction = group[4],
+                            iconMap = iconMap,
                             modifier = Modifier.weight(1f).height(180.dp).clickable { onTransactionClick(group[4]) }
                         )
                     } else {
@@ -222,6 +235,7 @@ fun MomentsGrid(
 @Composable
 fun MomentItem(
     transaction: TransactionResponse,
+    iconMap: Map<String, String>,
     modifier: Modifier = Modifier,
     isLarge: Boolean = false
 ) {
@@ -250,36 +264,37 @@ fun MomentItem(
                         )
                     )
             )
-            
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
             ) {
-                if (isLarge) {
-                    Surface(
-                        color = Color.White.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Text(
-                            text = transaction.createdAt,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontSize = 8.sp
-                        )
-                    }
-                }
-                
                 Text(
                     text = Utils.formatNumber(transaction.amount),
                     style = if (isLarge) MaterialTheme.typography.displaySmall else MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFD1FF26),
                     fontWeight = FontWeight.ExtraBold
                 )
+
+                val category = transaction.categoryId
+                val emoji = category?.icon?.let { iconMap[it] } ?: "📦"
+                val categoryName = category?.name ?: "Unknown"
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = emoji, fontSize = if (isLarge) 16.sp else 12.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = categoryName,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isLarge) 14.sp else 11.sp
+                    )
+                }
+
                 Text(
-                    text = "${transaction.createdAt} • ${transaction.createdAt}",
+                    text = Utils.formatRelativeDate(transaction.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     fontSize = 10.sp,
