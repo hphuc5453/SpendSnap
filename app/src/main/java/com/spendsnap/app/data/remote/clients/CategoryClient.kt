@@ -1,6 +1,7 @@
 package com.spendsnap.app.data.remote.clients
 
 import com.spendsnap.app.data.remote.models.BaseResponse
+import com.spendsnap.app.data.remote.models.CategoryIconResponse
 import com.spendsnap.app.data.remote.models.CategoryRequest
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import retrofit2.Response
@@ -13,6 +14,9 @@ interface CategoryClient {
     @GET("/category")
     suspend fun getCategory(): Response<BaseResponse<List<CategoryResponse>>>
 
-    @POST("/category")
+    @GET("/category/icons")
+    suspend fun getCategoryIcons(): Response<BaseResponse<List<CategoryIconResponse>>>
+
+    @POST("/category/create")
     suspend fun createCategory(@Body category: CategoryRequest): Response<BaseResponse<Unit>>
 }

@@ -1,8 +1,12 @@
 package com.spendsnap.app.data.remote.repositories.categories
 
 import com.spendsnap.app.data.local.dao.CategoryDao
+import com.spendsnap.app.data.local.dao.CategoryIconDao
 import com.spendsnap.app.data.local.entities.toCategoryEntity
+import com.spendsnap.app.data.local.entities.toCategoryIconEntity
+import com.spendsnap.app.data.local.entities.toCategoryIconResponse
 import com.spendsnap.app.data.local.entities.toCategoryResponse
+import com.spendsnap.app.data.remote.models.CategoryIconResponse
 import com.spendsnap.app.data.remote.models.CategoryRequest
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.services.ApiResult
@@ -13,10 +17,12 @@ import javax.inject.Singleton
 @Singleton
 class CategoryRepository @Inject constructor(
     private val categoryService: CategoryService,
-    private val categoryDao: CategoryDao
+    private val categoryDao: CategoryDao,
+    private val categoryIconDao: CategoryIconDao
 ) : ICategoryRepository {
 
     private var memoryCache: List<CategoryResponse>? = null
+    private var iconsCache: List<CategoryIconResponse>? = null
 
     override fun getCachedCategories(): List<CategoryResponse>? = memoryCache
 
@@ -42,6 +48,23 @@ class CategoryRepository @Inject constructor(
         if (result is ApiResult.Success) {
             memoryCache = null
             categoryDao.clearCategories()
+        }
+        return result
+    }
+
+    override suspend fun getCategoryIcons(): ApiResult<List<CategoryIconResponse>> {
+        iconsCache?.let { return ApiResult.Success(it) }
+
+        val roomCached = categoryIconDao.getCategoryIcons()
+        if (roomCached.isNotEmpty()) {
+            iconsCache = roomCached.map { it.toCategoryIconResponse() }
+            return ApiResult.Success(iconsCache!!)
+        }
+
+        val result = categoryService.getCategoryIcons()
+        if (result is ApiResult.Success) {
+            iconsCache = result.data
+            categoryIconDao.insertCategoryIcons(result.data.map { it.toCategoryIconEntity() })
         }
         return result
     }

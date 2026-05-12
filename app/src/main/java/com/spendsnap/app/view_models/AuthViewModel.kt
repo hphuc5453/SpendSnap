@@ -9,6 +9,7 @@ import com.spendsnap.app.data.remote.models.LoginRequest
 import com.spendsnap.app.data.remote.models.SignupRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
+import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
 import com.spendsnap.app.data.remote.repositories.user.IUserRepository
 import com.spendsnap.app.data.remote.services.ApiResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,8 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
     private val authManager: AuthManager,
-    private val userRepository: IUserRepository
+    private val userRepository: IUserRepository,
+    private val categoryRepository: ICategoryRepository
 ) : ViewModel() {
 
     //login
@@ -44,9 +46,10 @@ class AuthViewModel @Inject constructor(
             _loginState.value = ApiResult.Loading(true)
             val result = authRepository.signIn(LoginRequest(email, encodePassword(password)))
 
-            // Nếu thành công, lưu token vào DataStore
+            // Nếu thành công, lưu token vào DataStore và prefetch icons về Room
             if (result is ApiResult.Success) {
                 authManager.saveAccessToken(result.data.accessToken)
+                categoryRepository.getCategoryIcons()
             }
 
             _loginState.value = result

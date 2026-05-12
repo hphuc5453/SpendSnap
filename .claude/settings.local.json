@@ -3,7 +3,9 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\BINH\\\\AndroidStudioProjects\\\\SpendSnap\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(ls \"D:\\\\sources\\\\spend-snap-be\\\\SpendSnap\")",
+      "Read(//d/sources/spend-snap-be/SpendSnap/**)"
     ]
   }
 }

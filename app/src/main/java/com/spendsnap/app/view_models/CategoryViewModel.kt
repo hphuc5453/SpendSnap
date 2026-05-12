@@ -2,6 +2,7 @@ package com.spendsnap.app.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spendsnap.app.data.remote.models.CategoryIconResponse
 import com.spendsnap.app.data.remote.models.CategoryRequest
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
@@ -24,6 +25,16 @@ class CategoryViewModel @Inject constructor(
     private val _createCategoryState = MutableStateFlow<ApiResult<Unit>?>(null)
     val createCategoryState: StateFlow<ApiResult<Unit>?> = _createCategoryState.asStateFlow()
 
+    private val _categoryIconsState = MutableStateFlow<ApiResult<List<CategoryIconResponse>>?>(null)
+    val categoryIconsState: StateFlow<ApiResult<List<CategoryIconResponse>>?> = _categoryIconsState.asStateFlow()
+
+    fun getCategoryIcons() {
+        viewModelScope.launch {
+            _categoryIconsState.value = ApiResult.Loading(true)
+            _categoryIconsState.value = categoryRepository.getCategoryIcons()
+        }
+    }
+
     fun getCategories() {
         viewModelScope.launch {
             _categoriesState.value = ApiResult.Loading(true)
@@ -31,11 +42,11 @@ class CategoryViewModel @Inject constructor(
         }
     }
 
-    fun createCategory(name: String, type: String, limitBudget: Double) {
+    fun createCategory(name: String, kind: String, icon: String, color: String? = null) {
         viewModelScope.launch {
             _createCategoryState.value = ApiResult.Loading(true)
             _createCategoryState.value = categoryRepository.createCategory(
-                CategoryRequest(name = name, type = type, limitBudget = limitBudget)
+                CategoryRequest(name = name, kind = kind.lowercase(), icon = icon, color = color)
             )
         }
     }

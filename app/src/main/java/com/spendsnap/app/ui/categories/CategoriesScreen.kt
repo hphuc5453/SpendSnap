@@ -1,7 +1,6 @@
 package com.spendsnap.app.ui.categories
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -15,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,21 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.services.ApiResult
-import com.spendsnap.app.ui.components.HeaderSection
 import com.spendsnap.app.view_models.CategoryViewModel
-
-private val categoryIcons = listOf(
-    Icons.Default.Restaurant,
-    Icons.Default.ShoppingBag,
-    Icons.Default.DirectionsCar,
-    Icons.Default.CardGiftcard,
-    Icons.Default.FitnessCenter,
-    Icons.Default.Movie,
-    Icons.Default.Work,
-    Icons.Default.Home,
-    Icons.Default.Favorite,
-    Icons.Default.Star
-)
 
 private val categoryColors = listOf(
     Color(0xFFD1FF26),
@@ -53,22 +37,23 @@ private val categoryColors = listOf(
     Color(0xFFF48FB1)
 )
 
+private const val FALLBACK_ICON = "📦"
+
 data class Category(
-    val id: Int = 0,
+    val id: String = "",
     val name: String,
-    val icon: ImageVector,
+    val icon: String,
     val color: Color,
     val type: String = "EXPENSE",
     val limitBudget: Double = 0.0
 )
 
-fun CategoryResponse.toCategory(index: Int) = Category(
+fun CategoryResponse.toCategory(index: Int, iconMap: Map<String, String>) = Category(
     id = id,
     name = name,
-    icon = categoryIcons[index % categoryIcons.size],
+    icon = iconMap[icon] ?: FALLBACK_ICON,
     color = categoryColors[index % categoryColors.size],
-    type = type,
-    limitBudget = limitBudget
+    type = kind
 )
 
 @Composable
@@ -78,13 +63,19 @@ fun CategoriesScreen(
     viewModel: CategoryViewModel = hiltViewModel()
 ) {
     val categoriesState by viewModel.categoriesState.collectAsState()
+    val categoryIconsState by viewModel.categoryIconsState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.getCategories()
+        viewModel.getCategoryIcons()
     }
 
+    val iconMap = (categoryIconsState as? ApiResult.Success)?.data
+        ?.associate { it.slug to it.icon }
+        .orEmpty()
+
     val categories = when (val state = categoriesState) {
-        is ApiResult.Success -> state.data.mapIndexed { index, response -> response.toCategory(index) }
+        is ApiResult.Success -> state.data.mapIndexed { index, response -> response.toCategory(index, iconMap) }
         else -> emptyList()
     }
 
@@ -172,11 +163,9 @@ fun MostUsedCategoryCard(mostUsed: Category?) {
                     color = Color.Black.copy(alpha = 0.7f)
                 )
             }
-            Icon(
-                mostUsed?.icon ?: Icons.Default.Home,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color.Black.copy(alpha = 0.2f)
+            Text(
+                text = mostUsed?.icon ?: FALLBACK_ICON,
+                fontSize = 48.sp
             )
         }
     }
@@ -224,7 +213,7 @@ fun CategoryItem(category: Category, modifier: Modifier = Modifier) {
                     .background(category.color),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(category.icon, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
+                Text(text = category.icon, fontSize = 20.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = category.name, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
@@ -310,7 +299,7 @@ fun CategoryLimitItem(category: Category) {
                 modifier = Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF2C2C2E)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(category.icon, contentDescription = null, tint = category.color)
+                Text(text = category.icon, fontSize = 24.sp)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {

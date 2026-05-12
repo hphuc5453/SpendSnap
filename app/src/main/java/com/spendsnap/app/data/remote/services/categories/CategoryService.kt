@@ -1,6 +1,7 @@
 package com.spendsnap.app.data.remote.services.categories
 
 import com.spendsnap.app.data.remote.clients.CategoryClient
+import com.spendsnap.app.data.remote.models.CategoryIconResponse
 import com.spendsnap.app.data.remote.models.CategoryRequest
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.services.ApiResult
@@ -17,5 +18,9 @@ class CategoryService @Inject constructor(
 
     override suspend fun createCategory(request: CategoryRequest): ApiResult<Unit> {
         return safeApiCall { categoryClient.createCategory(request) }
+    }
+
+    override suspend fun getCategoryIcons(): ApiResult<List<CategoryIconResponse>> {
+        return safeApiCall { categoryClient.getCategoryIcons() }
     }
 }

@@ -38,14 +38,27 @@ fun AddNewCategoryScreen(
 ) {
     var categoryName by remember { mutableStateOf("") }
     var categoryNameError by remember { mutableStateOf("") }
-    var selectedIconIndex by remember { mutableIntStateOf(0) }
+    var selectedIconSlug by remember { mutableStateOf("") }
     var budgetAmount by remember { mutableStateOf("") }
     var budgetError by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("EXPENSE") }
 
     val createCategoryState by viewModel.createCategoryState.collectAsState()
+    val categoryIconsState by viewModel.categoryIconsState.collectAsState()
     var showSuccessDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.getCategoryIcons()
+    }
+
+    val icons = (categoryIconsState as? ApiResult.Success)?.data.orEmpty()
+
+    LaunchedEffect(icons) {
+        if (selectedIconSlug.isEmpty() && icons.isNotEmpty()) {
+            selectedIconSlug = icons.first().slug
+        }
+    }
 
     LaunchedEffect(createCategoryState) {
         when (val state = createCategoryState) {
@@ -73,17 +86,6 @@ fun AddNewCategoryScreen(
             }
         )
     }
-
-    val icons = listOf(
-        Icons.Default.Restaurant,
-        Icons.Default.ShoppingBag,
-        Icons.Default.AirplanemodeActive,
-        Icons.Default.DirectionsCar,
-        Icons.Default.CardGiftcard,
-        Icons.Default.FitnessCenter,
-        Icons.Default.Movie,
-        Icons.Default.Work
-    )
 
     Column(
         modifier = modifier
@@ -140,30 +142,47 @@ fun AddNewCategoryScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                for (row in 0..1) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            when (val state = categoryIconsState) {
+                is ApiResult.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(80.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        for (col in 0..3) {
-                            val index = row * 4 + col
-                            if (index < icons.size) {
-                                val isSelected = selectedIconIndex == index
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isSelected) Color(0xFFD1FF26) else Color(0xFF1A1A1A))
-                                        .clickable { selectedIconIndex = index },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        icons[index],
-                                        contentDescription = null,
-                                        tint = if (isSelected) Color.Black else Color.Gray,
-                                        modifier = Modifier.size(28.dp)
-                                    )
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                is ApiResult.Error -> {
+                    Text(
+                        text = state.exception.message ?: "Lỗi tải icons",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                else -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        icons.chunked(4).forEach { rowIcons ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                rowIcons.forEach { iconItem ->
+                                    val isSelected = selectedIconSlug == iconItem.slug
+                                    Box(
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .clip(CircleShape)
+                                            .background(if (isSelected) Color(0xFFD1FF26) else Color(0xFF1A1A1A))
+                                            .clickable { selectedIconSlug = iconItem.slug },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = iconItem.icon,
+                                            fontSize = 28.sp
+                                        )
+                                    }
+                                }
+                                repeat(4 - rowIcons.size) {
+                                    Spacer(modifier = Modifier.size(64.dp))
                                 }
                             }
                         }
@@ -264,12 +283,16 @@ fun AddNewCategoryScreen(
                         budgetError = "Enter a valid amount."
                         valid = false
                     }
+                    if (selectedIconSlug.isEmpty()) {
+                        errorMessage = "Vui lòng chọn icon."
+                        valid = false
+                    }
                     if (valid) {
                         errorMessage = ""
                         viewModel.createCategory(
                             name = categoryName.trim(),
-                            type = selectedType,
-                            limitBudget = budget ?: 0.0
+                            kind = selectedType,
+                            icon = selectedIconSlug
                         )
                     }
                 },
