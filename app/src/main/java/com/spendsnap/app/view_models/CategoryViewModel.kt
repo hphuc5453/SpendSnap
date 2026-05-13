@@ -7,6 +7,8 @@ import com.spendsnap.app.data.remote.models.CategoryRequest
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.data.remote.socket.InvalidatedResource
+import com.spendsnap.app.data.remote.socket.SocketManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
-    private val categoryRepository: ICategoryRepository
+    private val categoryRepository: ICategoryRepository,
+    private val socketManager: SocketManager
 ) : ViewModel() {
 
     private val _categoriesState = MutableStateFlow<ApiResult<List<CategoryResponse>>?>(null)
@@ -27,6 +30,19 @@ class CategoryViewModel @Inject constructor(
 
     private val _categoryIconsState = MutableStateFlow<ApiResult<List<CategoryIconResponse>>?>(null)
     val categoryIconsState: StateFlow<ApiResult<List<CategoryIconResponse>>?> = _categoryIconsState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            socketManager.invalidations.collect { resources ->
+                if (InvalidatedResource.CATEGORIES in resources) {
+                    categoryRepository.invalidateCategories()
+                    if (_categoriesState.value is ApiResult.Success) {
+                        getCategories()
+                    }
+                }
+            }
+        }
+    }
 
     fun getCategoryIcons() {
         viewModelScope.launch {

@@ -6,6 +6,8 @@ import com.spendsnap.app.data.remote.models.TransactionRequest
 import com.spendsnap.app.data.remote.models.TransactionsListResponse
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.data.remote.socket.InvalidatedResource
+import com.spendsnap.app.data.remote.socket.SocketManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TransactionViewModel @Inject constructor(
-    private val transactionRepository: ITransactionRepository
+    private val transactionRepository: ITransactionRepository,
+    private val socketManager: SocketManager
 ) : ViewModel() {
 
     private val _createTransactionState = MutableStateFlow<ApiResult<Unit>?>(null)
@@ -24,6 +27,18 @@ class TransactionViewModel @Inject constructor(
 
     private val _transactionsState = MutableStateFlow<ApiResult<TransactionsListResponse>?>(null)
     val transactionsState: StateFlow<ApiResult<TransactionsListResponse>?> = _transactionsState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            socketManager.invalidations.collect { resources ->
+                if (InvalidatedResource.TRANSACTIONS in resources &&
+                    _transactionsState.value is ApiResult.Success
+                ) {
+                    getTransactions()
+                }
+            }
+        }
+    }
 
     fun getTransactions() {
         viewModelScope.launch {

@@ -20,6 +20,7 @@ retrofitKotlinxSerializationConverter = "1.0.0"
 hilt = "2.52"
 datastoreCore = "1.2.1"
 coil = "2.7.0"
+socketio = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,6 +64,7 @@ androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core
 
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+socketio-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

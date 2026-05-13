@@ -46,10 +46,14 @@ class CategoryRepository @Inject constructor(
     override suspend fun createCategory(request: CategoryRequest): ApiResult<Unit> {
         val result = categoryService.createCategory(request)
         if (result is ApiResult.Success) {
-            memoryCache = null
-            categoryDao.clearCategories()
+            invalidateCategories()
         }
         return result
+    }
+
+    override suspend fun invalidateCategories() {
+        memoryCache = null
+        categoryDao.clearCategories()
     }
 
     override suspend fun getCategoryIcons(): ApiResult<List<CategoryIconResponse>> {

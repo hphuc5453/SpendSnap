@@ -102,9 +102,10 @@ fun CategoriesScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        MostUsedCategoryCard(categories.firstOrNull { it.isMostUsed } ?: categories.firstOrNull())
-
-        Spacer(modifier = Modifier.height(24.dp))
+        categories.firstOrNull { it.isMostUsed }?.let { mostUsed ->
+            MostUsedCategoryCard(mostUsed)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
         when (val state = categoriesState) {
             is ApiResult.Loading -> {

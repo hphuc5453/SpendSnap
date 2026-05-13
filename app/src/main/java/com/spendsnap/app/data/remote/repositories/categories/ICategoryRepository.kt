@@ -10,4 +10,5 @@ interface ICategoryRepository {
     suspend fun createCategory(request: CategoryRequest): ApiResult<Unit>
     fun getCachedCategories(): List<CategoryResponse>?
     suspend fun getCategoryIcons(): ApiResult<List<CategoryIconResponse>>
+    suspend fun invalidateCategories()
 }
