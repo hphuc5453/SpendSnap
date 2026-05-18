@@ -104,7 +104,7 @@ fun VerifyOtpScreen(
                 viewModel.resetResetState()
             }
             is ApiResult.Error -> {
-                errorMessage = state.exception.message ?: context.getString(R.string.error_unknown)
+                errorMessage = state.exception.message
                 showErrorDialog = true
                 viewModel.resetResetState()
             }
@@ -115,12 +115,11 @@ fun VerifyOtpScreen(
     LaunchedEffect(sendCodeState) {
         when (val state = sendCodeState) {
             is ApiResult.Error -> {
-                errorMessage = state.exception.message ?: context.getString(R.string.error_unknown)
+                errorMessage = state.exception.message
                 showErrorDialog = true
                 viewModel.resetSendCodeState()
             }
             is ApiResult.Success -> {
-                // chỉ silent reset; có thể show snackbar/toast nếu muốn
                 viewModel.resetSendCodeState()
             }
             else -> {}
