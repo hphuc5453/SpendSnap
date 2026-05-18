@@ -19,4 +19,12 @@ class AuthRepository @Inject constructor(
     override suspend fun signUp(request: SignupRequest): ApiResult<UserResponse> {
         return authService.signUp(request)
     }
+
+    override suspend fun forgotPassword(email: String): ApiResult<Unit> {
+        return authService.forgotPassword(email)
+    }
+
+    override suspend fun resetPassword(email: String, otp: String, newPassword: String): ApiResult<Unit> {
+        return authService.resetPassword(email, otp, newPassword)
+    }
 }

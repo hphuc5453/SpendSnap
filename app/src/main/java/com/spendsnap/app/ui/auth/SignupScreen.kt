@@ -80,11 +80,9 @@ fun SignupScreen(
     val signupState by viewModel.signupState.collectAsState()
     val isLoading = signupState is ApiResult.Loading
 
-    // State cho Error Dialog
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Dialog Components
     LoadingDialog(isLoading = isLoading)
     AppStatusDialog(
         show = showErrorDialog,
@@ -94,7 +92,6 @@ fun SignupScreen(
         onDismiss = { showErrorDialog = false }
     )
 
-    // Xử lý các side-effects từ trạng thái API
     LaunchedEffect(signupState) {
         when (signupState) {
             is ApiResult.Success -> {
@@ -204,7 +201,6 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Name Field
         SignupField(
             label = stringResource(R.string.label_name),
             value = name,
@@ -219,7 +215,6 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Email Field
         SignupField(
             label = stringResource(R.string.label_email),
             value = email,
@@ -234,7 +229,6 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Password Field
         SignupField(
             label = stringResource(R.string.label_password),
             value = password,
@@ -250,7 +244,6 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Confirm Password Field
         SignupField(
             label = stringResource(R.string.label_confirm_password),
             value = confirmPassword,
@@ -266,7 +259,6 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Create Account Button
         Button(
             onClick = handleSignup,
             modifier = Modifier

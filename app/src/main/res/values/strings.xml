@@ -143,4 +143,31 @@
     <string name="date_minutes_ago">%1$dm ago</string>
     <string name="date_hours_ago">%1$dh ago</string>
     <string name="date_days_ago">%1$d days ago</string>
+
+    <!-- Forgot Password -->
+    <string name="forgot_title">Forgot Password?</string>
+    <string name="forgot_subtitle">Enter your registered email to receive a recovery code.</string>
+    <string name="forgot_label_email">EMAIL ADDRESS</string>
+    <string name="forgot_placeholder_email">name@email.com</string>
+    <string name="btn_send_code">SEND CODE</string>
+    <string name="forgot_code_sent">A 6-digit code has been sent to your email.</string>
+
+    <!-- New Password -->
+    <string name="new_password_title">New Password</string>
+    <string name="new_password_subtitle">Set a strong password to protect your account.</string>
+    <string name="new_password_label">NEW PASSWORD</string>
+    <string name="new_password_confirm_label">CONFIRM NEW PASSWORD</string>
+    <string name="new_password_hint">Must be at least 6 characters.</string>
+    <string name="btn_reset_password">RESET PASSWORD</string>
+    <string name="error_password_too_short">Password must be at least 6 characters.</string>
+
+    <!-- Verify OTP -->
+    <string name="verify_check_your">Check your</string>
+    <string name="verify_inbox">inbox.</string>
+    <string name="verify_subtitle">We sent a 6-digit code to your email.\nEnter it below to secure your account.</string>
+    <string name="btn_verify">Verify</string>
+    <string name="otp_didnt_receive">Didn\'t receive the code?</string>
+    <string name="btn_resend_code">Resend code</string>
+    <string name="otp_error_invalid">Please enter the 6-digit code.</string>
+    <string name="reset_password_success">Your password has been reset. Please sign in again.</string>
 </resources>

@@ -131,6 +131,9 @@ fun MainScreen(authManager: AuthManager) {
                     || selectedScreen == Screen.TransactionDetail
                     || selectedScreen == Screen.SettingsLanguage
                     || selectedScreen == Screen.SettingsCurrency
+                    || selectedScreen == Screen.ForgotPassword
+                    || selectedScreen == Screen.NewPassword
+                    || selectedScreen == Screen.VerifyOtp
                 if (!hideNav) {
                     SpendSnapBottomNav(
                         currentScreen = selectedScreen!!,
@@ -144,7 +147,8 @@ fun MainScreen(authManager: AuthManager) {
                     when (screen) {
                         Screen.Login -> LoginScreen(
                             onLoginSuccess = { selectedScreen = Screen.Camera },
-                            onSignupClick = { selectedScreen = Screen.Signup }
+                            onSignupClick = { selectedScreen = Screen.Signup },
+                            onForgotPasswordClick = { selectedScreen = Screen.ForgotPassword }
                         )
 
                         Screen.Signup -> SignupScreen(
@@ -188,6 +192,21 @@ fun MainScreen(authManager: AuthManager) {
                         Screen.AddNewCategory -> AddNewCategoryScreen(onBack = {
                             selectedScreen = Screen.Categories
                         })
+
+                        Screen.ForgotPassword -> com.spendsnap.app.ui.auth.ForgotPasswordScreen(
+                            onBack = { selectedScreen = Screen.Login },
+                            onCodeSent = { selectedScreen = Screen.NewPassword }
+                        )
+
+                        Screen.NewPassword -> com.spendsnap.app.ui.auth.NewPasswordScreen(
+                            onBack = { selectedScreen = Screen.ForgotPassword },
+                            onContinue = { selectedScreen = Screen.VerifyOtp }
+                        )
+
+                        Screen.VerifyOtp -> com.spendsnap.app.ui.auth.VerifyOtpScreen(
+                            onBack = { selectedScreen = Screen.NewPassword },
+                            onVerified = { selectedScreen = Screen.Login }
+                        )
 
                         else -> {}
                     }

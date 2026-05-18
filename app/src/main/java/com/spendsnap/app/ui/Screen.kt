@@ -14,6 +14,9 @@ sealed class Screen(@DrawableRes val icon: Int? = null, val label: String? = nul
     object TransactionDetail : Screen()
     object SettingsLanguage : Screen()
     object SettingsCurrency : Screen()
+    object ForgotPassword : Screen()
+    object NewPassword : Screen()
+    object VerifyOtp : Screen()
 
     object AddNewCategory : Screen()
 }

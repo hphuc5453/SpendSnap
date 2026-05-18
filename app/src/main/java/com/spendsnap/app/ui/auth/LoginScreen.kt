@@ -27,7 +27,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -43,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +65,7 @@ import com.spendsnap.app.view_models.AuthViewModel
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onSignupClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -74,14 +75,12 @@ fun LoginScreen(
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     
-    // State cho Error Dialog
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
     val loginState by viewModel.loginState.collectAsState()
     val isLoading = loginState is ApiResult.Loading
 
-    // Dialog Components
     LoadingDialog(isLoading = isLoading)
     AppStatusDialog(
         show = showErrorDialog,
@@ -91,7 +90,6 @@ fun LoginScreen(
         onDismiss = { showErrorDialog = false }
     )
 
-    // Xử lý các side-effects từ trạng thái API
     LaunchedEffect(loginState) {
         when (loginState) {
             is ApiResult.Success -> {
@@ -169,7 +167,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Email Field
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = stringResource(R.string.label_email),
@@ -228,7 +225,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = stringResource(R.string.label_password),
@@ -263,8 +259,12 @@ fun LoginScreen(
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Image(
-                            painter = painterResource(id = R.drawable.outline_visibility_24),
+                            painter = painterResource(
+                                id = if (passwordVisible) R.drawable.outline_visibility_24
+                                else R.drawable.outline_visibility_off_24
+                            ),
                             contentDescription = null,
+                            colorFilter = ColorFilter.tint(Color.Gray)
                         )
                     }
                 },
@@ -295,9 +295,8 @@ fun LoginScreen(
             }
         }
         
-        // Forgot Password Button aligned to the end
         TextButton(
-            onClick = { },
+            onClick = onForgotPasswordClick,
             modifier = Modifier.align(Alignment.End),
             enabled = !isLoading
         ) {
@@ -311,7 +310,6 @@ fun LoginScreen(
         
         Spacer(modifier = Modifier.height(12.dp))
         
-        // Login Button
         Button(
             onClick = handleLogin,
             modifier = Modifier
@@ -350,27 +348,6 @@ fun LoginScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun SocialButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    modifier: Modifier = Modifier
-) {
-    OutlinedButton(
-        onClick = { },
-        modifier = modifier.height(56.dp),
-        shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.DarkGray),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = label, fontWeight = FontWeight.SemiBold)
         }
     }
 }

@@ -143,4 +143,31 @@
     <string name="date_minutes_ago">%1$d phút trước</string>
     <string name="date_hours_ago">%1$d giờ trước</string>
     <string name="date_days_ago">%1$d ngày trước</string>
+
+    <!-- Quên mật khẩu -->
+    <string name="forgot_title">Quên mật khẩu?</string>
+    <string name="forgot_subtitle">Nhập email đã đăng ký để nhận mã khôi phục.</string>
+    <string name="forgot_label_email">ĐỊA CHỈ EMAIL</string>
+    <string name="forgot_placeholder_email">name@email.com</string>
+    <string name="btn_send_code">GỬI MÃ</string>
+    <string name="forgot_code_sent">Mã 6 chữ số đã được gửi tới email của bạn.</string>
+
+    <!-- Mật khẩu mới -->
+    <string name="new_password_title">Mật khẩu mới</string>
+    <string name="new_password_subtitle">Đặt mật khẩu mạnh để bảo vệ tài khoản.</string>
+    <string name="new_password_label">MẬT KHẨU MỚI</string>
+    <string name="new_password_confirm_label">XÁC NHẬN MẬT KHẨU MỚI</string>
+    <string name="new_password_hint">Tối thiểu 6 ký tự.</string>
+    <string name="btn_reset_password">ĐẶT LẠI MẬT KHẨU</string>
+    <string name="error_password_too_short">Mật khẩu phải có ít nhất 6 ký tự.</string>
+
+    <!-- Xác nhận OTP -->
+    <string name="verify_check_your">Kiểm tra</string>
+    <string name="verify_inbox">hộp thư.</string>
+    <string name="verify_subtitle">Chúng tôi đã gửi mã 6 chữ số tới email của bạn.\nNhập mã bên dưới để bảo vệ tài khoản.</string>
+    <string name="btn_verify">Xác nhận</string>
+    <string name="otp_didnt_receive">Chưa nhận được mã?</string>
+    <string name="btn_resend_code">Gửi lại mã</string>
+    <string name="otp_error_invalid">Vui lòng nhập đủ 6 chữ số.</string>
+    <string name="reset_password_success">Mật khẩu đã được đặt lại. Vui lòng đăng nhập lại.</string>
 </resources>

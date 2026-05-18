@@ -2,7 +2,9 @@ package com.spendsnap.app.data.remote.clients
 
 import com.spendsnap.app.data.remote.models.AuthResponse
 import com.spendsnap.app.data.remote.models.BaseResponse
+import com.spendsnap.app.data.remote.models.ForgotPasswordRequest
 import com.spendsnap.app.data.remote.models.LoginRequest
+import com.spendsnap.app.data.remote.models.ResetPasswordRequest
 import com.spendsnap.app.data.remote.models.SignupRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import retrofit2.Response
@@ -15,4 +17,10 @@ interface AuthClient {
 
     @POST("auth/signup")
     suspend fun signup(@Body request: SignupRequest): Response<BaseResponse<UserResponse>>
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<BaseResponse<Unit>>
+
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<BaseResponse<Unit>>
 }

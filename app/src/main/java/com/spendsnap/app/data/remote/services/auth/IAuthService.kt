@@ -9,4 +9,6 @@ import com.spendsnap.app.data.remote.services.ApiResult
 interface IAuthService {
     suspend fun signIn(request: LoginRequest): ApiResult<AuthResponse>
     suspend fun signUp(request: SignupRequest): ApiResult<UserResponse>
+    suspend fun forgotPassword(email: String): ApiResult<Unit>
+    suspend fun resetPassword(email: String, otp: String, newPassword: String): ApiResult<Unit>
 }

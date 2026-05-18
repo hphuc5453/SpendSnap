@@ -1,11 +1,11 @@
 package com.spendsnap.app.view_models
 
 import android.content.Context
-import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendsnap.app.data.local.AuthManager
 import com.spendsnap.app.data.local.CurrencyManager
+import com.spendsnap.app.shared.encodePassword
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.spendsnap.app.data.remote.models.AuthResponse
 import com.spendsnap.app.data.remote.models.LoginRequest
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,16 +69,6 @@ class AuthViewModel @Inject constructor(
 
             val result = authRepository.signUp(SignupRequest(name, email, encodedPassword))
             _signupState.value = result
-        }
-    }
-
-    private fun encodePassword(password: String): String {
-        return try {
-            val digest = MessageDigest.getInstance("SHA-256")
-            val hash = digest.digest(password.toByteArray(Charsets.UTF_8))
-            Base64.encodeToString(hash, Base64.NO_WRAP)
-        } catch (_: Exception) {
-            password // Trả về plain text nếu có lỗi (hoặc xử lý tùy ý)
         }
     }
 

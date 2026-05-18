@@ -42,3 +42,15 @@ data class UpdateLanguageRequest(
 data class UpdateCurrencyRequest(
     val currency: String
 )
+
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val email: String,
+    val otp: String,
+    val newPassword: String
+)

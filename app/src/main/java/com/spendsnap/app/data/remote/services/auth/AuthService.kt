@@ -2,7 +2,9 @@ package com.spendsnap.app.data.remote.services.auth
 
 import com.spendsnap.app.data.remote.clients.AuthClient
 import com.spendsnap.app.data.remote.models.AuthResponse
+import com.spendsnap.app.data.remote.models.ForgotPasswordRequest
 import com.spendsnap.app.data.remote.models.LoginRequest
+import com.spendsnap.app.data.remote.models.ResetPasswordRequest
 import com.spendsnap.app.data.remote.models.SignupRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import com.spendsnap.app.data.remote.services.ApiResult
@@ -19,5 +21,15 @@ class AuthService @Inject constructor(
 
     override suspend fun signUp(request: SignupRequest): ApiResult<UserResponse> {
         return safeApiCall { authClient.signup(request) }
+    }
+
+    override suspend fun forgotPassword(email: String): ApiResult<Unit> {
+        return safeApiCall { authClient.forgotPassword(ForgotPasswordRequest(email)) }
+    }
+
+    override suspend fun resetPassword(email: String, otp: String, newPassword: String): ApiResult<Unit> {
+        return safeApiCall {
+            authClient.resetPassword(ResetPasswordRequest(email, otp, newPassword))
+        }
     }
 }
