@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StatisticsOverviewResponse(
     val yearMonth: String,
+    val currency: String? = null,
     val totalSpent: Double = 0.0,
     val totalSpentLastMonth: Double = 0.0,
     val spentChangePercent: Double? = null,

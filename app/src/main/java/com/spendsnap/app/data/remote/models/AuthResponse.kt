@@ -29,10 +29,16 @@ data class UserResponse(
     val name: String,
     val email: String,
     val avatar: String? = null,
-    val language: String? = null
+    val language: String? = null,
+    val currency: String? = null
 )
 
 @Serializable
 data class UpdateLanguageRequest(
     val language: String
+)
+
+@Serializable
+data class UpdateCurrencyRequest(
+    val currency: String
 )

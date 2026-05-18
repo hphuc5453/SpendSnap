@@ -1,8 +1,11 @@
 package com.spendsnap.app.ui.categories
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,24 +29,31 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.shared.Constants
 import com.spendsnap.app.ui.components.AppStatusDialog
 import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.shared.HeaderSection
 import com.spendsnap.app.ui.shared.TextFieldCommon
 import com.spendsnap.app.view_models.CategoryViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AddNewCategoryScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryViewModel = hiltViewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    val nameFieldRequester = remember { BringIntoViewRequester() }
+    val budgetFieldRequester = remember { BringIntoViewRequester() }
     var categoryName by remember { mutableStateOf("") }
     var categoryNameError by remember { mutableStateOf("") }
     var selectedIconSlug by remember { mutableStateOf("") }
     var budgetAmount by remember { mutableStateOf("") }
     var budgetError by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf("EXPENSE") }
+    var selectedType by remember { mutableStateOf(Constants.KIND_EXPENSE) }
 
     val createCategoryState by viewModel.createCategoryState.collectAsState()
     val categoryIconsState by viewModel.categoryIconsState.collectAsState()
@@ -71,7 +81,7 @@ fun AddNewCategoryScreen(
                 viewModel.resetCreateState()
             }
             is ApiResult.Error -> {
-                apiErrorMessage = state.exception.message ?: "Tạo danh mục thất bại"
+                apiErrorMessage = state.exception.message ?: context.getString(R.string.cat_create_failed)
                 showErrorDialog = true
                 viewModel.resetCreateState()
             }
@@ -82,15 +92,15 @@ fun AddNewCategoryScreen(
     AppStatusDialog(
         show = showSuccessDialog,
         type = DialogType.Success,
-        title = "Thành công!",
-        message = "Danh mục đã được tạo thành công.",
+        title = stringResource(R.string.dialog_success_title),
+        message = stringResource(R.string.cat_create_success_message),
         onDismiss = { showSuccessDialog = false; onBack() }
     )
 
     AppStatusDialog(
         show = showErrorDialog,
         type = DialogType.Error,
-        title = "Có lỗi xảy ra",
+        title = stringResource(R.string.dialog_error_title),
         message = apiErrorMessage,
         onDismiss = { showErrorDialog = false }
     )
@@ -113,22 +123,26 @@ fun AddNewCategoryScreen(
                 value = categoryName,
                 onValueChange = { categoryName = it; if (categoryNameError.isNotEmpty()) categoryNameError = "" },
                 placeholder = stringResource(R.string.placeholder_category_name),
-                error = categoryNameError
+                error = categoryNameError,
+                modifier = Modifier.bringIntoViewRequester(nameFieldRequester)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "CATEGORY TYPE",
+                text = stringResource(R.string.label_category_type),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf("EXPENSE", "INCOME").forEach { type ->
-                    val isSelected = selectedType == type
+                listOf(
+                    Constants.KIND_EXPENSE to R.string.tab_expense,
+                    Constants.KIND_INCOME to R.string.tab_income
+                ).forEach { (kind, labelRes) ->
+                    val isSelected = selectedType == kind
                     Button(
-                        onClick = { selectedType = type },
+                        onClick = { selectedType = kind },
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFF1A1A1A),
@@ -136,7 +150,7 @@ fun AddNewCategoryScreen(
                         ),
                         modifier = Modifier.weight(1f).height(48.dp)
                     ) {
-                        Text(text = type, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                        Text(text = stringResource(labelRes), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
@@ -161,7 +175,7 @@ fun AddNewCategoryScreen(
                 }
                 is ApiResult.Error -> {
                     Text(
-                        text = state.exception.message ?: "Lỗi tải icons",
+                        text = state.exception.message ?: stringResource(R.string.cat_icons_load_error),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -213,7 +227,9 @@ fun AddNewCategoryScreen(
                     budgetAmount = it
                     if (budgetError.isNotEmpty()) budgetError = ""
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(budgetFieldRequester),
                 shape = RoundedCornerShape(24.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 leadingIcon = {
@@ -226,7 +242,7 @@ fun AddNewCategoryScreen(
                     )
                 },
                 placeholder = {
-                    Text("0.00", color = Color.Gray)
+                    Text(stringResource(R.string.placeholder_amount_zero_decimal), color = Color.Gray)
                 },
                 isError = budgetError.isNotEmpty(),
                 supportingText = if (budgetError.isNotEmpty()) {
@@ -282,17 +298,20 @@ fun AddNewCategoryScreen(
             Button(
                 onClick = {
                     var valid = true
+                    var firstErrorRequester: BringIntoViewRequester? = null
                     if (categoryName.isBlank()) {
-                        categoryNameError = "Category name is required."
+                        categoryNameError = context.getString(R.string.error_category_name_required)
+                        if (firstErrorRequester == null) firstErrorRequester = nameFieldRequester
                         valid = false
                     }
                     val budget = budgetAmount.toDoubleOrNull()
                     if (budgetAmount.isNotEmpty() && budget == null) {
-                        budgetError = "Enter a valid amount."
+                        budgetError = context.getString(R.string.error_invalid_amount)
+                        if (firstErrorRequester == null) firstErrorRequester = budgetFieldRequester
                         valid = false
                     }
                     if (selectedIconSlug.isEmpty()) {
-                        validationError = "Vui lòng chọn icon."
+                        validationError = context.getString(R.string.error_select_icon)
                         valid = false
                     }
                     if (valid) {
@@ -302,6 +321,10 @@ fun AddNewCategoryScreen(
                             kind = selectedType,
                             icon = selectedIconSlug
                         )
+                    } else {
+                        firstErrorRequester?.let { requester ->
+                            scope.launch { requester.bringIntoView() }
+                        }
                     }
                 },
                 modifier = Modifier

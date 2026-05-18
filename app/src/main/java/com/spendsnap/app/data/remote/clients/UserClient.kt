@@ -1,6 +1,7 @@
 package com.spendsnap.app.data.remote.clients
 
 import com.spendsnap.app.data.remote.models.BaseResponse
+import com.spendsnap.app.data.remote.models.UpdateCurrencyRequest
 import com.spendsnap.app.data.remote.models.UpdateLanguageRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import retrofit2.Response
@@ -14,4 +15,7 @@ interface UserClient {
 
     @PATCH("users/profile")
     suspend fun updateLanguage(@Body request: UpdateLanguageRequest): Response<BaseResponse<UserResponse>>
+
+    @PATCH("users/currency")
+    suspend fun updateCurrency(@Body request: UpdateCurrencyRequest): Response<BaseResponse<UserResponse>>
 }

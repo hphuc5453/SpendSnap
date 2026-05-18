@@ -18,13 +18,14 @@ class TransactionService @Inject constructor(
         val plainText = "text/plain".toMediaTypeOrNull()
         val amountPart = request.amount.toString().toRequestBody(plainText)
         val categoryIdPart = request.categoryId.toRequestBody(plainText)
+        val currencyPart = request.currency?.toRequestBody(plainText)
 
         val imagePart = request.file?.let { file ->
             val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
             MultipartBody.Part.createFormData("image", file.name, requestFile)
         }
 
-        return safeApiCall { transactionClient.createTransaction(amountPart, categoryIdPart, imagePart) }
+        return safeApiCall { transactionClient.createTransaction(amountPart, categoryIdPart, currencyPart, imagePart) }
     }
 
     override suspend fun getTransactions(): ApiResult<TransactionsListResponse> {

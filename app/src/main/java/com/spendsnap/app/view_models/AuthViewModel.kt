@@ -1,9 +1,12 @@
 package com.spendsnap.app.view_models
 
+import android.content.Context
 import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spendsnap.app.data.local.AuthManager
+import com.spendsnap.app.data.local.CurrencyManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.spendsnap.app.data.remote.models.AuthResponse
 import com.spendsnap.app.data.remote.models.LoginRequest
 import com.spendsnap.app.data.remote.models.SignupRequest
@@ -25,7 +28,8 @@ class AuthViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
     private val authManager: AuthManager,
     private val userRepository: IUserRepository,
-    private val categoryRepository: ICategoryRepository
+    private val categoryRepository: ICategoryRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     //login
@@ -49,6 +53,7 @@ class AuthViewModel @Inject constructor(
             // Nếu thành công, lưu token vào DataStore và prefetch icons về Room
             if (result is ApiResult.Success) {
                 authManager.saveAccessToken(result.data.accessToken)
+                CurrencyManager.syncFromUserCurrency(context, result.data.user.currency)
                 categoryRepository.getCategoryIcons()
             }
 

@@ -4,6 +4,8 @@ import com.spendsnap.app.data.remote.repositories.AuthRepository
 import com.spendsnap.app.data.remote.repositories.IAuthRepository
 import com.spendsnap.app.data.remote.repositories.categories.CategoryRepository
 import com.spendsnap.app.data.remote.repositories.categories.ICategoryRepository
+import com.spendsnap.app.data.remote.repositories.currency.CurrencyRepository
+import com.spendsnap.app.data.remote.repositories.currency.ICurrencyRepository
 import com.spendsnap.app.data.remote.repositories.statistics.IStatisticsRepository
 import com.spendsnap.app.data.remote.repositories.statistics.StatisticsRepository
 import com.spendsnap.app.data.remote.repositories.transactions.ITransactionRepository
@@ -14,6 +16,8 @@ import com.spendsnap.app.data.remote.services.auth.AuthService
 import com.spendsnap.app.data.remote.services.auth.IAuthService
 import com.spendsnap.app.data.remote.services.categories.CategoryService
 import com.spendsnap.app.data.remote.services.categories.ICategoryService
+import com.spendsnap.app.data.remote.services.currency.CurrencyService
+import com.spendsnap.app.data.remote.services.currency.ICurrencyService
 import com.spendsnap.app.data.remote.services.statistics.IStatisticsService
 import com.spendsnap.app.data.remote.services.statistics.StatisticsService
 import com.spendsnap.app.data.remote.services.transactions.ITransactionService
@@ -81,4 +85,16 @@ abstract class RepositoryModule {
     abstract fun bindStatisticsRepository(
         statisticsRepository: StatisticsRepository
     ): IStatisticsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCurrencyService(
+        currencyService: CurrencyService
+    ): ICurrencyService
+
+    @Binds
+    @Singleton
+    abstract fun bindCurrencyRepository(
+        currencyRepository: CurrencyRepository
+    ): ICurrencyRepository
 }

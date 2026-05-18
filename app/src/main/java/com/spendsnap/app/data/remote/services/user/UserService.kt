@@ -1,6 +1,7 @@
 package com.spendsnap.app.data.remote.services.user
 
 import com.spendsnap.app.data.remote.clients.UserClient
+import com.spendsnap.app.data.remote.models.UpdateCurrencyRequest
 import com.spendsnap.app.data.remote.models.UpdateLanguageRequest
 import com.spendsnap.app.data.remote.models.UserResponse
 import com.spendsnap.app.data.remote.services.ApiResult
@@ -14,5 +15,9 @@ class UserService @Inject constructor(private val userClient: UserClient) : Base
 
     override suspend fun updateLanguage(language: String): ApiResult<UserResponse> {
         return safeApiCall { userClient.updateLanguage(UpdateLanguageRequest(language)) }
+    }
+
+    override suspend fun updateCurrency(currency: String): ApiResult<UserResponse> {
+        return safeApiCall { userClient.updateCurrency(UpdateCurrencyRequest(currency)) }
     }
 }

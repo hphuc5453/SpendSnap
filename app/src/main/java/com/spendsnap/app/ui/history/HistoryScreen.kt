@@ -34,13 +34,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.models.TransactionResponse
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.shared.Constants
 import com.spendsnap.app.shared.Utils
 import com.spendsnap.app.view_models.CategoryViewModel
 import com.spendsnap.app.view_models.TransactionViewModel
@@ -83,13 +87,13 @@ fun HistoryScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Recent Moments",
+            text = stringResource(R.string.history_recent_moments),
             style = MaterialTheme.typography.displaySmall,
             color = Color.White,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Your visual spending timeline",
+            text = stringResource(R.string.history_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -106,7 +110,7 @@ fun HistoryScreen(
             }
             is ApiResult.Error -> {
                 Text(
-                    text = "Lỗi: ${state.exception.message}",
+                    text = stringResource(R.string.history_load_error, state.exception.message),
                     color = Color.Red,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
@@ -128,20 +132,20 @@ fun MoneyLeftCard(totalSpent: Double) {
         Box(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
             Column {
                 Text(
-                    text = "TOTAL SPENT THIS MONTH",
+                    text = stringResource(R.string.history_total_spent_month),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Black.copy(alpha = 0.6f),
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = Utils.formatNumber(totalSpent),
+                    text = Utils.formatCurrency(LocalContext.current, totalSpent),
                     style = MaterialTheme.typography.displayLarge,
                     color = Color.Black,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "You're doing great!",
+                    text = stringResource(R.string.history_doing_great),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black.copy(alpha = 0.6f)
                 )
@@ -271,15 +275,15 @@ fun MomentItem(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = Utils.formatNumber(transaction.amount),
+                    text = Utils.formatCurrency(LocalContext.current, transaction.amount),
                     style = if (isLarge) MaterialTheme.typography.displaySmall else MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFD1FF26),
                     fontWeight = FontWeight.ExtraBold
                 )
 
                 val category = transaction.categoryId
-                val emoji = category?.icon?.let { iconMap[it] } ?: "📦"
-                val categoryName = category?.name ?: "Unknown"
+                val emoji = category?.icon?.let { iconMap[it] } ?: Constants.FALLBACK_ICON
+                val categoryName = category?.name ?: stringResource(R.string.history_unknown_category)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = emoji, fontSize = if (isLarge) 16.sp else 12.sp)
@@ -293,8 +297,9 @@ fun MomentItem(
                     )
                 }
 
+                val context = LocalContext.current
                 Text(
-                    text = Utils.formatRelativeDate(transaction.createdAt),
+                    text = Utils.formatRelativeDate(context, transaction.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     fontSize = 10.sp,
@@ -311,6 +316,6 @@ fun EmptyState() {
         modifier = Modifier.fillMaxWidth().height(200.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("No transactions yet. Start snapping!", color = Color.Gray)
+        Text(stringResource(R.string.history_empty), color = Color.Gray)
     }
 }

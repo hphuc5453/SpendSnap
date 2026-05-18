@@ -62,7 +62,8 @@ fun ProfileScreen(
     viewModel: AuthViewModel = hiltViewModel(),
     userModel: UserViewModel = hiltViewModel(),
     onLogoutSuccess: () -> Unit,
-    onNavigateToLanguage: () -> Unit = {}
+    onNavigateToLanguage: () -> Unit = {},
+    onNavigateToCurrency: () -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         userModel.getMe()
@@ -190,9 +191,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(Icons.Default.Language, stringResource(R.string.settings_language), stringResource(R.string.settings_language_sub), onClick = onNavigateToLanguage)
-            SettingsItem(Icons.Default.AccountBalance, stringResource(R.string.settings_linked_accounts), stringResource(R.string.settings_linked_accounts_sub))
-            SettingsItem(Icons.Default.Notifications, stringResource(R.string.settings_notifications), stringResource(R.string.settings_notifications_sub))
-            SettingsItem(Icons.Default.Lock, stringResource(R.string.settings_privacy), stringResource(R.string.settings_privacy_sub))
+            SettingsItem(Icons.Default.AccountBalance, stringResource(R.string.settings_currency), stringResource(R.string.settings_currency_sub), onClick = onNavigateToCurrency)
 
             Spacer(modifier = Modifier.height(32.dp))
 

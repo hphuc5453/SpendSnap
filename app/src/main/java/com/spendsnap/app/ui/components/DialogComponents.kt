@@ -27,11 +27,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.spendsnap.app.R
 
 enum class DialogType { Success, Error }
 
@@ -68,7 +70,7 @@ fun AppStatusDialog(
     title: String,
     message: String,
     onDismiss: () -> Unit,
-    confirmText: String = "ĐÓNG",
+    confirmText: String? = null,
     secondaryText: String? = null,
     onSecondaryClick: (() -> Unit)? = null,
     footer: @Composable (() -> Unit)? = null
@@ -77,6 +79,7 @@ fun AppStatusDialog(
 
     val primary = MaterialTheme.colorScheme.primary
     val errorRed = Color(0xFFFF4D4F)
+    val resolvedConfirmText = confirmText ?: stringResource(R.string.dialog_btn_close)
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -147,7 +150,7 @@ fun AppStatusDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = primary)
                 ) {
                     Text(
-                        text = confirmText,
+                        text = resolvedConfirmText,
                         color = Color.Black,
                         fontWeight = FontWeight.ExtraBold,
                         style = MaterialTheme.typography.titleMedium

@@ -130,6 +130,7 @@ fun MainScreen(authManager: AuthManager) {
                     || selectedScreen == Screen.Signup
                     || selectedScreen == Screen.TransactionDetail
                     || selectedScreen == Screen.SettingsLanguage
+                    || selectedScreen == Screen.SettingsCurrency
                 if (!hideNav) {
                     SpendSnapBottomNav(
                         currentScreen = selectedScreen!!,
@@ -162,7 +163,8 @@ fun MainScreen(authManager: AuthManager) {
 
                         Screen.Profile -> com.spendsnap.app.ui.profile.ProfileScreen(
                             onLogoutSuccess = { selectedScreen = Screen.Login },
-                            onNavigateToLanguage = { selectedScreen = Screen.SettingsLanguage }
+                            onNavigateToLanguage = { selectedScreen = Screen.SettingsLanguage },
+                            onNavigateToCurrency = { selectedScreen = Screen.SettingsCurrency }
                         )
 
                         Screen.TransactionDetail -> TransactionDetailScreen(onBack = {
@@ -175,6 +177,10 @@ fun MainScreen(authManager: AuthManager) {
                                 languageCode = code
                                 selectedScreen = Screen.Profile
                             }
+                        )
+
+                        Screen.SettingsCurrency -> com.spendsnap.app.ui.settings.SettingsCurrencyScreen(
+                            onBack = { selectedScreen = Screen.Profile }
                         )
 
                         Screen.Camera -> CameraScreen()

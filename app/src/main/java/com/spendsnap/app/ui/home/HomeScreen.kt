@@ -18,13 +18,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.models.BreakdownItemResponse
 import com.spendsnap.app.data.remote.models.StatisticsOverviewResponse
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.shared.Constants
+import com.spendsnap.app.shared.Utils
 import com.spendsnap.app.view_models.CategoryViewModel
 import com.spendsnap.app.view_models.StatisticsViewModel
 import java.util.Locale
@@ -39,8 +44,6 @@ private val fallbackColors = listOf(
     Color(0xFFEF9A9A),
     Color(0xFFFFCC80)
 )
-
-private const val FALLBACK_ICON = "📦"
 
 @Composable
 fun HomeScreen(
@@ -69,7 +72,7 @@ fun HomeScreen(
     ) {
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Text(
-                text = "Stats",
+                text = stringResource(R.string.home_title),
                 style = MaterialTheme.typography.displayMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -84,7 +87,7 @@ fun HomeScreen(
                 }
                 is ApiResult.Error -> {
                     Text(
-                        text = state.exception.message ?: "Lỗi tải dữ liệu",
+                        text = state.exception.message ?: stringResource(R.string.error_load_data),
                         color = Color.Red,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(vertical = 16.dp)
@@ -121,7 +124,11 @@ private fun OverviewContent(
 
     overview.insights.topImprovement?.let { improvement ->
         Text(
-            text = "You're spending less on ${improvement.name}. That's ${formatCurrency(improvement.savedAmount)} saved this month.",
+            text = stringResource(
+                R.string.home_insight_improvement,
+                improvement.name,
+                Utils.formatCurrency(LocalContext.current,improvement.savedAmount)
+            ),
             color = Color.Gray,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -129,7 +136,7 @@ private fun OverviewContent(
     }
 
     Text(
-        text = "Breakdown",
+        text = stringResource(R.string.home_breakdown_title),
         style = MaterialTheme.typography.titleLarge,
         color = Color.White,
         fontWeight = FontWeight.Bold,
@@ -138,7 +145,7 @@ private fun OverviewContent(
 
     if (overview.breakdown.isEmpty()) {
         Text(
-            text = "No spending yet this month",
+            text = stringResource(R.string.home_no_spending_yet),
             color = Color.Gray,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -148,7 +155,7 @@ private fun OverviewContent(
             BreakdownItemView(
                 item = item,
                 iconBgColor = parseHexColor(item.color) ?: fallbackColors[index % fallbackColors.size],
-                emoji = iconMap[item.icon] ?: FALLBACK_ICON
+                emoji = iconMap[item.icon] ?: Constants.FALLBACK_ICON
             )
         }
     }
@@ -170,13 +177,13 @@ fun TotalSpentCard(totalSpent: Double, changePercent: Double?) {
         ) {
             Column {
                 Text(
-                    text = "TOTAL MONTHLY SPENT",
+                    text = stringResource(R.string.home_total_monthly_spent),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = formatCurrency(totalSpent),
+                    text = Utils.formatCurrency(LocalContext.current,totalSpent),
                     style = MaterialTheme.typography.headlineLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -251,7 +258,7 @@ fun DonutChartSection(breakdown: List<BreakdownItemResponse>, monthLabel: String
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "SPENT", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+            Text(text = stringResource(R.string.home_donut_center_label), style = MaterialTheme.typography.labelMedium, color = Color.Gray)
             Text(
                 text = monthLabel,
                 style = MaterialTheme.typography.headlineMedium,
@@ -275,13 +282,13 @@ fun RemainingBudgetCard(remainingBudget: Double, safeToSpendPerDay: Double?) {
         Box(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
             Column {
                 Text(
-                    text = if (isOverBudget) "OVER BUDGET" else "REMAINING BUDGET",
+                    text = stringResource(if (isOverBudget) R.string.home_over_budget else R.string.home_remaining_budget),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Black.copy(alpha = 0.6f),
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = formatCurrency(kotlin.math.abs(remainingBudget)),
+                    text = Utils.formatCurrency(LocalContext.current,kotlin.math.abs(remainingBudget)),
                     style = MaterialTheme.typography.displaySmall,
                     color = Color.Black,
                     fontWeight = FontWeight.Bold
@@ -294,7 +301,7 @@ fun RemainingBudgetCard(remainingBudget: Double, safeToSpendPerDay: Double?) {
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            text = "Safe to spend today: ${formatCurrency(safeToSpendPerDay)}",
+                            text = stringResource(R.string.home_safe_to_spend_today, Utils.formatCurrency(LocalContext.current,safeToSpendPerDay)),
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.Black.copy(alpha = 0.6f)
                         )
@@ -333,13 +340,13 @@ fun BreakdownItemView(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.name, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    text = String.format(Locale.US, "%.0f%% of spending", item.percentage),
+                    text = stringResource(R.string.home_pct_of_spending, String.format(Locale.US, "%.0f", item.percentage)),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = formatCurrency(item.amount), style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(text = Utils.formatCurrency(LocalContext.current,item.amount), style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
                 val change = item.changePercent
                 if (change != null) {
                     val trendColor = if (change >= 0) Color(0xFFEF5350) else MaterialTheme.colorScheme.primary
@@ -356,8 +363,6 @@ fun BreakdownItemView(
     }
 }
 
-private fun formatCurrency(value: Double): String =
-    String.format(Locale.US, "$%,.2f", value)
 
 private fun monthLabel(yearMonth: String): String {
     val months = listOf("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")

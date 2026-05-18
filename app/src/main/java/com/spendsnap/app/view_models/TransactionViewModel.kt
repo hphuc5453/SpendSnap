@@ -48,13 +48,19 @@ class TransactionViewModel @Inject constructor(
         }
     }
 
-    fun createTransaction(amount: Double, categoryId: String, imageFile: File? = null) {
+    fun createTransaction(
+        amount: Double,
+        categoryId: String,
+        currency: String? = null,
+        imageFile: File? = null
+    ) {
         viewModelScope.launch {
             _createTransactionState.value = ApiResult.Loading(true)
             val result = transactionRepository.createTransaction(
                 TransactionRequest(
                     amount = amount,
                     categoryId = categoryId,
+                    currency = currency,
                     file = imageFile
                 )
             )

@@ -71,7 +71,12 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.spendsnap.app.R
+import com.spendsnap.app.data.local.CurrencyManager
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.shared.Constants
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import com.spendsnap.app.ui.components.AppStatusDialog
 import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.components.LoadingDialog
@@ -107,7 +112,7 @@ fun CameraScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf("") }
-    var selectedKind by remember { mutableStateOf("expense") }
+    var selectedKind by remember { mutableStateOf(Constants.KIND_EXPENSE) }
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
     var amountText by remember { mutableStateOf("") }
 
@@ -116,7 +121,7 @@ fun CameraScreen(
     AppStatusDialog(
         show = showErrorDialog,
         type = DialogType.Error,
-        title = "Có lỗi xảy ra",
+        title = stringResource(R.string.dialog_error_title),
         message = errorMessage,
         onDismiss = { showErrorDialog = false }
     )
@@ -124,8 +129,8 @@ fun CameraScreen(
     AppStatusDialog(
         show = showSuccessDialog,
         type = DialogType.Success,
-        title = "Thành công!",
-        message = "Giao dịch của bạn đã được ghi lại chính xác.",
+        title = stringResource(R.string.dialog_success_title),
+        message = stringResource(R.string.tx_success_message),
         onDismiss = {
             showSuccessDialog = false
             capturedUri = null
@@ -155,7 +160,7 @@ fun CameraScreen(
     LaunchedEffect(createTransactionState) {
         when (val state = createTransactionState) {
             is ApiResult.Error -> {
-                errorMessage = state.exception.message ?: "Unknown Error"
+                errorMessage = state.exception.message
                 showErrorDialog = true
                 viewModel.resetCreateState()
             }
@@ -192,17 +197,18 @@ fun CameraScreen(
                         onConfirm = {
                             val amountValue = amountText.toDoubleOrNull()
                             if (amountValue == null || amountValue <= 0) {
-                                Toast.makeText(context, "Vui lòng nhập số tiền hợp lệ", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.validate_amount_invalid), Toast.LENGTH_SHORT).show()
                                 return@CapturePreview
                             }
                             if (selectedCategoryId.isEmpty()) {
-                                Toast.makeText(context, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.validate_select_category), Toast.LENGTH_SHORT).show()
                                 return@CapturePreview
                             }
                             val imageFile = capturedUri?.path?.let { File(it) }?.takeIf { it.exists() }
                             viewModel.createTransaction(
                                 amount = amountValue,
                                 categoryId = selectedCategoryId,
+                                currency = CurrencyManager.getSavedCurrency(context),
                                 imageFile = imageFile
                             )
                         },
@@ -317,16 +323,16 @@ fun CapturePreview(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(text = "ENTERING AMOUNT", style = MaterialTheme.typography.labelMedium, color = Color.Gray, letterSpacing = 1.sp)
+        Text(text = stringResource(R.string.label_entering_amount), style = MaterialTheme.typography.labelMedium, color = Color.Gray, letterSpacing = 1.sp)
 
         TextField(
-            value = amount,
+            value = formatAmountInput(amount),
             onValueChange = {},
             readOnly = true, // Quan trọng: Chặn bàn phím hệ thống
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
-                Text("0", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, 
-                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 56.sp),
+                Text(stringResource(R.string.placeholder_amount_zero), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 48.sp),
                     color = Color.White.copy(alpha = 0.2f))
             },
             colors = TextFieldDefaults.colors(
@@ -337,21 +343,16 @@ fun CapturePreview(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
-            textStyle = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 56.sp, textAlign = TextAlign.Center)
+            textStyle = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 48.sp, textAlign = TextAlign.Center)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // Custom Numeric Keypad
+        // Custom Numeric Keypad — fixed height để 4 rows luôn render đủ
         NumericKeypad(
-            onKeyClick = { key ->
-                if (key == "." && amount.contains(".")) return@NumericKeypad
-                if (amount.length < 10) onAmountChange(amount + key)
-            },
-            onDeleteClick = {
-                if (amount.isNotEmpty()) onAmountChange(amount.dropLast(1))
-            },
-            modifier = Modifier.weight(1f)
+            value = amount,
+            onValueChange = onAmountChange,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Row(
@@ -359,7 +360,7 @@ fun CapturePreview(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             TextButton(onClick = onRetake, modifier = Modifier.weight(1f)) {
-                Text("RETAKE", color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_retake_photo), color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
             }
             Button(
                 onClick = onConfirm,
@@ -367,7 +368,7 @@ fun CapturePreview(
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("CONFIRM", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_confirm), color = Color.Black, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.Black)
             }
@@ -377,9 +378,10 @@ fun CapturePreview(
 
 @Composable
 fun NumericKeypad(
-    onKeyClick: (String) -> Unit,
-    onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    maxLength: Int = Constants.MAX_AMOUNT_LENGTH
 ) {
     val keys = listOf(
         listOf("1", "2", "3"),
@@ -387,6 +389,15 @@ fun NumericKeypad(
         listOf("7", "8", "9"),
         listOf(".", "0", "BACKSPACE")
     )
+
+    fun handleKey(key: String) {
+        when {
+            key == "BACKSPACE" -> if (value.isNotEmpty()) onValueChange(value.dropLast(1))
+            key == "." && value.contains(".") -> Unit
+            value.length >= maxLength -> Unit
+            else -> onValueChange(value + key)
+        }
+    }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         keys.forEach { row ->
@@ -398,7 +409,7 @@ fun NumericKeypad(
                             .height(64.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(if (key == "BACKSPACE") Color.Transparent else Color(0xFF1C1C1E))
-                            .clickable { if (key == "BACKSPACE") onDeleteClick() else onKeyClick(key) },
+                            .clickable { handleKey(key) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (key == "BACKSPACE") {
@@ -423,7 +434,10 @@ private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        listOf("expense" to "EXPENSE", "income" to "INCOME").forEach { (kind, label) ->
+        listOf(
+            Constants.KIND_EXPENSE to R.string.tab_expense,
+            Constants.KIND_INCOME to R.string.tab_income
+        ).forEach { (kind, labelRes) ->
             val isSelected = kind == selectedKind
             Box(
                 modifier = Modifier
@@ -435,7 +449,7 @@ private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = label,
+                    text = stringResource(labelRes),
                     color = if (isSelected) Color.Black else Color.Gray,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.labelMedium
@@ -458,13 +472,13 @@ private fun CategoryPicker(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "CATEGORY",
+            text = stringResource(R.string.label_category),
             style = MaterialTheme.typography.labelMedium,
             color = Color.Gray,
             letterSpacing = 1.sp
         )
         Text(
-            text = "SEE ALL",
+            text = stringResource(R.string.btn_see_all),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -474,7 +488,7 @@ private fun CategoryPicker(
 
     if (categories.isEmpty()) {
         Text(
-            text = "Không có danh mục",
+            text = stringResource(R.string.label_no_category),
             color = Color.Gray,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -500,7 +514,7 @@ private fun CategoryPicker(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = iconMap[category.icon] ?: "📦",
+                            text = iconMap[category.icon] ?: Constants.FALLBACK_ICON,
                             fontSize = 24.sp
                         )
                     }
@@ -531,6 +545,25 @@ fun CornerMarkers(color: Color) {
         // BR
         drawPath(path = Path().apply { moveTo(size.width - cornerSize, size.height); lineTo(size.width, size.height); lineTo(size.width, size.height - cornerSize) }, color = color, style = Stroke(strokeWidth))
     }
+}
+
+private val thousandsFormatter = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US))
+
+/**
+ * Format raw digits input thành chuỗi có ngăn cách hàng nghìn để hiển thị.
+ *  - "1234" → "1,234"
+ *  - "1234567.89" → "1,234,567.89"
+ *  - "" / "." → giữ nguyên
+ *
+ * State gốc (`amountText`) vẫn là raw digits để `toDoubleOrNull` parse được.
+ */
+private fun formatAmountInput(raw: String): String {
+    if (raw.isEmpty()) return ""
+    val dotIdx = raw.indexOf('.')
+    val intPart = if (dotIdx >= 0) raw.substring(0, dotIdx) else raw
+    val decPart = if (dotIdx >= 0) raw.substring(dotIdx) else ""
+    val formattedInt = intPart.toLongOrNull()?.let { thousandsFormatter.format(it) } ?: intPart
+    return formattedInt + decPart
 }
 
 private fun takePhoto(context: Context, imageCapture: ImageCapture, executor: ExecutorService, onImageCaptured: (Uri) -> Unit, onError: (ImageCaptureException) -> Unit) {

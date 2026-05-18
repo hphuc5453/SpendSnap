@@ -39,9 +39,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spendsnap.app.R
 
 @Composable
 fun TransactionDetailScreen(
@@ -178,7 +180,7 @@ fun TransactionDetailScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Edit, contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Edit Transaction", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_edit_transaction), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -193,7 +195,7 @@ fun TransactionDetailScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFFFF5C00), modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Delete Record", color = Color(0xFFFF5C00), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.btn_delete_record), color = Color(0xFFFF5C00), fontWeight = FontWeight.Bold)
             }
         }
 

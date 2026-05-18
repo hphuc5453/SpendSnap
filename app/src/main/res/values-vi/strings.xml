@@ -40,6 +40,16 @@
     <string name="currency_symbol">₫</string>
     <string name="btn_confirm">XÁC NHẬN</string>
     <string name="btn_retake_photo">CHỤP LẠI</string>
+    <string name="placeholder_amount_zero">0</string>
+    <string name="placeholder_amount_zero_decimal">0.00</string>
+    <string name="validate_amount_invalid">Vui lòng nhập số tiền hợp lệ</string>
+    <string name="validate_select_category">Vui lòng chọn danh mục</string>
+    <string name="tx_success_message">Giao dịch của bạn đã được ghi lại chính xác.</string>
+    <string name="tab_expense">CHI TIÊU</string>
+    <string name="tab_income">THU NHẬP</string>
+    <string name="label_category">DANH MỤC</string>
+    <string name="btn_see_all">XEM TẤT CẢ</string>
+    <string name="label_no_category">Không có danh mục</string>
 
     <!-- Màn hình Hồ sơ -->
     <string name="error_load_profile">Tải hồ sơ thất bại</string>
@@ -54,7 +64,17 @@
     <string name="settings_notifications_sub">Cảnh báo, cập nhật và lời nhắc</string>
     <string name="settings_privacy">Quyền riêng tư &amp; Bảo mật</string>
     <string name="settings_privacy_sub">2FA, mật khẩu và dữ liệu riêng tư</string>
+    <string name="settings_currency">Tiền tệ</string>
+    <string name="settings_currency_sub">Chọn loại tiền tệ mặc định</string>
     <string name="btn_sign_out">ĐĂNG XUẤT</string>
+
+    <!-- Màn hình Tiền tệ -->
+    <string name="currency_search_hint">Tìm kiếm tiền tệ…</string>
+    <string name="currency_current_selection">ĐANG CHỌN</string>
+    <string name="currency_all_currencies">TẤT CẢ LOẠI TIỀN</string>
+    <string name="currency_empty_search">Không có loại tiền nào khớp</string>
+    <string name="currency_load_error">Lỗi tải danh sách tiền tệ</string>
+    <string name="btn_save_selection">Lưu lựa chọn</string>
 
     <!-- Màn hình Danh mục -->
     <string name="title_categories">Danh mục</string>
@@ -63,6 +83,10 @@
     <string name="label_new_category">MỚI</string>
     <string name="title_category_limits">Hạn mức danh mục</string>
     <string name="btn_manage_all">QUẢN LÝ TẤT CẢ</string>
+    <string name="cat_no_categories_yet">Chưa có danh mục</string>
+    <string name="cat_no_budget_limits">Chưa đặt hạn mức</string>
+    <string name="cat_load_error">Lỗi tải danh mục</string>
+    <string name="cat_empty_dash">—</string>
 
     <!-- Màn hình Thêm danh mục -->
     <string name="label_category_name">TÊN DANH MỤC</string>
@@ -75,4 +99,48 @@
     <string name="label_visibility">HIỂN THỊ</string>
     <string name="value_visibility">Riêng tư</string>
     <string name="btn_create_category">TẠO DANH MỤC</string>
+    <string name="label_category_type">LOẠI DANH MỤC</string>
+    <string name="error_category_name_required">Vui lòng nhập tên danh mục.</string>
+    <string name="error_invalid_amount">Nhập số tiền hợp lệ.</string>
+    <string name="error_select_icon">Vui lòng chọn icon.</string>
+    <string name="cat_icons_load_error">Lỗi tải biểu tượng</string>
+    <string name="cat_create_failed">Tạo danh mục thất bại</string>
+    <string name="cat_create_success_message">Danh mục đã được tạo thành công.</string>
+
+    <!-- Màn hình Thống kê -->
+    <string name="home_title">Thống kê</string>
+    <string name="home_breakdown_title">Phân loại</string>
+    <string name="home_total_monthly_spent">TỔNG CHI THÁNG NÀY</string>
+    <string name="home_donut_center_label">ĐÃ TIÊU</string>
+    <string name="home_remaining_budget">NGÂN SÁCH CÒN LẠI</string>
+    <string name="home_over_budget">VƯỢT NGÂN SÁCH</string>
+    <string name="home_safe_to_spend_today">Có thể chi hôm nay: %1$s</string>
+    <string name="home_no_spending_yet">Tháng này chưa có khoản chi</string>
+    <string name="home_pct_of_spending">%1$s%% chi tiêu</string>
+    <string name="home_insight_improvement">Bạn đang chi ít hơn cho %1$s. Tiết kiệm được %2$s tháng này.</string>
+    <string name="error_load_data">Lỗi tải dữ liệu</string>
+
+    <!-- Màn hình Lịch sử -->
+    <string name="history_recent_moments">Khoảnh khắc gần đây</string>
+    <string name="history_subtitle">Dòng thời gian chi tiêu của bạn</string>
+    <string name="history_total_spent_month">TỔNG CHI THÁNG NÀY</string>
+    <string name="history_doing_great">Bạn đang làm rất tốt!</string>
+    <string name="history_empty">Chưa có giao dịch. Bắt đầu chụp ngay!</string>
+    <string name="history_unknown_category">Không rõ</string>
+    <string name="history_load_error">Lỗi: %1$s</string>
+
+    <!-- Chi tiết giao dịch -->
+    <string name="btn_edit_transaction">Sửa giao dịch</string>
+    <string name="btn_delete_record">Xoá giao dịch</string>
+
+    <!-- Dialog chung -->
+    <string name="dialog_error_title">Có lỗi xảy ra</string>
+    <string name="dialog_success_title">Thành công!</string>
+    <string name="dialog_btn_close">ĐÓNG</string>
+    <string name="error_unknown">Đã xảy ra lỗi không xác định</string>
+
+    <!-- Hậu tố thời gian tương đối -->
+    <string name="date_minutes_ago">%1$d phút trước</string>
+    <string name="date_hours_ago">%1$d giờ trước</string>
+    <string name="date_days_ago">%1$d ngày trước</string>
 </resources>

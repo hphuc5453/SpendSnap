@@ -86,7 +86,7 @@ fun LoginScreen(
     AppStatusDialog(
         show = showErrorDialog,
         type = DialogType.Error,
-        title = "Có lỗi xảy ra",
+        title = stringResource(R.string.dialog_error_title),
         message = errorMessage,
         onDismiss = { showErrorDialog = false }
     )

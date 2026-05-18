@@ -22,6 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsnap.app.R
 import com.spendsnap.app.data.remote.models.CategoryResponse
 import com.spendsnap.app.data.remote.services.ApiResult
+import com.spendsnap.app.shared.Constants
+import com.spendsnap.app.shared.Utils
 import com.spendsnap.app.view_models.CategoryViewModel
 
 private val categoryColors = listOf(
@@ -37,8 +39,6 @@ private val categoryColors = listOf(
     Color(0xFFF48FB1)
 )
 
-private const val FALLBACK_ICON = "📦"
-
 data class Category(
     val id: String = "",
     val name: String,
@@ -52,7 +52,7 @@ data class Category(
 fun CategoryResponse.toCategory(index: Int, iconMap: Map<String, String>) = Category(
     id = id,
     name = name,
-    icon = iconMap[icon] ?: FALLBACK_ICON,
+    icon = iconMap[icon] ?: Constants.FALLBACK_ICON,
     color = categoryColors[index % categoryColors.size],
     type = kind,
     isMostUsed = isMostUsed
@@ -115,7 +115,7 @@ fun CategoriesScreen(
             }
             is ApiResult.Error -> {
                 Text(
-                    text = state.exception.message ?: "Lỗi tải danh mục",
+                    text = state.exception.message ?: stringResource(R.string.cat_load_error),
                     color = Color.Red,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 16.dp)
@@ -154,20 +154,20 @@ fun MostUsedCategoryCard(mostUsed: Category?) {
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = mostUsed?.name ?: "—",
+                    text = mostUsed?.name ?: stringResource(R.string.cat_empty_dash),
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.Black,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = if (mostUsed != null) mostUsed.type else "No categories yet",
+                    text = if (mostUsed != null) mostUsed.type else stringResource(R.string.cat_no_categories_yet),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black.copy(alpha = 0.7f)
                 )
             }
             Text(
-                text = mostUsed?.icon ?: FALLBACK_ICON,
+                text = mostUsed?.icon ?: Constants.FALLBACK_ICON,
                 fontSize = 48.sp
             )
         }
@@ -273,7 +273,7 @@ fun CategoryLimitsSection(categories: List<Category> = emptyList()) {
 
         if (categories.isEmpty()) {
             Text(
-                text = "No budget limits set",
+                text = stringResource(R.string.cat_no_budget_limits),
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -308,7 +308,7 @@ fun CategoryLimitItem(category: Category) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = category.name, color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(text = "$${category.limitBudget.toInt()}", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = Utils.formatCurrency(androidx.compose.ui.platform.LocalContext.current, category.limitBudget), color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Text(text = category.type, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(8.dp))

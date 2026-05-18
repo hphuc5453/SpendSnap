@@ -5,6 +5,7 @@ import com.spendsnap.app.BuildConfig
 import com.spendsnap.app.data.local.AuthManager
 import com.spendsnap.app.data.remote.clients.AuthClient
 import com.spendsnap.app.data.remote.clients.CategoryClient
+import com.spendsnap.app.data.remote.clients.CurrencyClient
 import com.spendsnap.app.data.remote.clients.StatisticsClient
 import com.spendsnap.app.data.remote.clients.TransactionClient
 import com.spendsnap.app.data.remote.clients.UserClient
@@ -102,5 +103,11 @@ object NetworkModule {
     @Singleton
     fun provideStatisticsClient(retrofit: Retrofit): StatisticsClient {
         return retrofit.create(StatisticsClient::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurrencyClient(retrofit: Retrofit): CurrencyClient {
+        return retrofit.create(CurrencyClient::class.java)
     }
 }

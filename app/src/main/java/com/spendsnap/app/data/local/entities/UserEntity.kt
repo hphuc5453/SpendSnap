@@ -11,8 +11,24 @@ data class UserEntity(
     val name: String,
     val email: String,
     val avatar: String? = null,
-    val language: String? = null
+    val language: String? = null,
+    val currency: String? = null
 )
 
-fun UserEntity.toUserResponse() = UserResponse(id = id, name = name, email = email, avatar = avatar, language = language)
-fun UserResponse.toEntity() = UserEntity(id = id, name = name, email = email, avatar = avatar, language = language)
+fun UserEntity.toUserResponse() = UserResponse(
+    id = id,
+    name = name,
+    email = email,
+    avatar = avatar,
+    language = language,
+    currency = currency
+)
+
+fun UserResponse.toEntity() = UserEntity(
+    id = id,
+    name = name,
+    email = email,
+    avatar = avatar,
+    language = language,
+    currency = currency
+)

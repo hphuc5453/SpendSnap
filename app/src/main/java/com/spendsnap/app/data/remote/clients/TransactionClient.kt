@@ -16,6 +16,7 @@ interface TransactionClient {
     suspend fun createTransaction(
         @Part("amount") amount: RequestBody,
         @Part("categoryId") categoryId: RequestBody,
+        @Part("currency") currency: RequestBody? = null,
         @Part image: MultipartBody.Part? = null
     ): Response<BaseResponse<Unit>>
 

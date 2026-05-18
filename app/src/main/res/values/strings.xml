@@ -25,7 +25,7 @@
     <string name="label_confirm_password">Confirm Password</string>
     <string name="label_agree_terms">I agree to the Terms and Conditions and privacy policy.</string>
     <string name="label_already_have_account">Already have an account?</string>
-    
+
     <!-- Validation Errors -->
     <string name="error_name_required">Name is required.</string>
     <string name="error_email_required">Email is required.</string>
@@ -40,6 +40,16 @@
     <string name="currency_symbol">$</string>
     <string name="btn_confirm">CONFIRM</string>
     <string name="btn_retake_photo">RETAKE</string>
+    <string name="placeholder_amount_zero">0</string>
+    <string name="placeholder_amount_zero_decimal">0.00</string>
+    <string name="validate_amount_invalid">Please enter a valid amount</string>
+    <string name="validate_select_category">Please select a category</string>
+    <string name="tx_success_message">Your transaction has been recorded.</string>
+    <string name="tab_expense">EXPENSE</string>
+    <string name="tab_income">INCOME</string>
+    <string name="label_category">CATEGORY</string>
+    <string name="btn_see_all">SEE ALL</string>
+    <string name="label_no_category">No categories</string>
 
     <!-- Profile Screen -->
     <string name="error_load_profile">Failed to load profile</string>
@@ -54,7 +64,17 @@
     <string name="settings_notifications_sub">Alerts, updates, and reminders</string>
     <string name="settings_privacy">Privacy &amp; Security</string>
     <string name="settings_privacy_sub">2FA, password, and data privacy</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_currency_sub">Choose your default currency</string>
     <string name="btn_sign_out">SIGN OUT</string>
+
+    <!-- Currency Screen -->
+    <string name="currency_search_hint">Search currency…</string>
+    <string name="currency_current_selection">CURRENT SELECTION</string>
+    <string name="currency_all_currencies">ALL CURRENCIES</string>
+    <string name="currency_empty_search">No matching currency</string>
+    <string name="currency_load_error">Failed to load currencies</string>
+    <string name="btn_save_selection">Save Selection</string>
 
     <!-- Categories Screen -->
     <string name="title_categories">Categories</string>
@@ -63,6 +83,10 @@
     <string name="label_new_category">NEW</string>
     <string name="title_category_limits">Category Limits</string>
     <string name="btn_manage_all">MANAGE ALL</string>
+    <string name="cat_no_categories_yet">No categories yet</string>
+    <string name="cat_no_budget_limits">No budget limits set</string>
+    <string name="cat_load_error">Failed to load categories</string>
+    <string name="cat_empty_dash">—</string>
 
     <!-- Add New Category Screen -->
     <string name="label_category_name">CATEGORY NAME</string>
@@ -75,4 +99,48 @@
     <string name="label_visibility">VISIBILITY</string>
     <string name="value_visibility">Private Vault</string>
     <string name="btn_create_category">CREATE CATEGORY</string>
+    <string name="label_category_type">CATEGORY TYPE</string>
+    <string name="error_category_name_required">Category name is required.</string>
+    <string name="error_invalid_amount">Enter a valid amount.</string>
+    <string name="error_select_icon">Please select an icon.</string>
+    <string name="cat_icons_load_error">Failed to load icons</string>
+    <string name="cat_create_failed">Failed to create category</string>
+    <string name="cat_create_success_message">Category created successfully.</string>
+
+    <!-- Home / Statistics Screen -->
+    <string name="home_title">Stats</string>
+    <string name="home_breakdown_title">Breakdown</string>
+    <string name="home_total_monthly_spent">TOTAL MONTHLY SPENT</string>
+    <string name="home_donut_center_label">SPENT</string>
+    <string name="home_remaining_budget">REMAINING BUDGET</string>
+    <string name="home_over_budget">OVER BUDGET</string>
+    <string name="home_safe_to_spend_today">Safe to spend today: %1$s</string>
+    <string name="home_no_spending_yet">No spending yet this month</string>
+    <string name="home_pct_of_spending">%1$s%% of spending</string>
+    <string name="home_insight_improvement">You\'re spending less on %1$s. That\'s %2$s saved this month.</string>
+    <string name="error_load_data">Failed to load data</string>
+
+    <!-- History Screen -->
+    <string name="history_recent_moments">Recent Moments</string>
+    <string name="history_subtitle">Your visual spending timeline</string>
+    <string name="history_total_spent_month">TOTAL SPENT THIS MONTH</string>
+    <string name="history_doing_great">You\'re doing great!</string>
+    <string name="history_empty">No transactions yet. Start snapping!</string>
+    <string name="history_unknown_category">Unknown</string>
+    <string name="history_load_error">Error: %1$s</string>
+
+    <!-- Transaction Detail -->
+    <string name="btn_edit_transaction">Edit Transaction</string>
+    <string name="btn_delete_record">Delete Record</string>
+
+    <!-- Common Dialogs -->
+    <string name="dialog_error_title">An error occurred</string>
+    <string name="dialog_success_title">Success!</string>
+    <string name="dialog_btn_close">CLOSE</string>
+    <string name="error_unknown">Unknown error</string>
+
+    <!-- Relative date suffixes -->
+    <string name="date_minutes_ago">%1$dm ago</string>
+    <string name="date_hours_ago">%1$dh ago</string>
+    <string name="date_days_ago">%1$d days ago</string>
 </resources>

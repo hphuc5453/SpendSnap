@@ -7,6 +7,7 @@ import java.io.File
 data class TransactionRequest(
     val amount: Double,
     val categoryId: String,
+    val currency: String? = null,
     val file: File? = null
 )
 
@@ -25,6 +26,9 @@ data class TransactionResponse(
     val _id: String,
     val categoryId: TransactionCategory? = null,
     val amount: Double,
+    val currency: String? = null,
+    val originalAmount: Double? = null,
+    val originalCurrency: String? = null,
     val imageUrl: String? = null,
     val createdAt: String
 )
@@ -32,5 +36,6 @@ data class TransactionResponse(
 @Serializable
 data class TransactionsListResponse(
     val transactions: List<TransactionResponse> = emptyList(),
-    val totalSpent: Double = 0.0
+    val totalSpent: Double = 0.0,
+    val currency: String? = null
 )

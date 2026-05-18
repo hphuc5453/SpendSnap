@@ -45,6 +45,15 @@ class UserRepository @Inject constructor(
         return result
     }
 
+    override suspend fun updateCurrency(currency: String): ApiResult<UserResponse> {
+        val result = userService.updateCurrency(currency)
+        if (result is ApiResult.Success) {
+            memoryCache = result.data
+            userDao.insertUser(result.data.toEntity())
+        }
+        return result
+    }
+
     override suspend fun clearCache() {
         memoryCache = null
         userDao.clearUser()
