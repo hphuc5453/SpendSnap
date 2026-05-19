@@ -31,9 +31,9 @@ object Utils {
      * Format theo currency được user chọn (symbol từ CurrencyManager). Mặc định prefix.
      * vd USD: "$1,234.56"; VND: "₫1,234"
      */
-    fun formatCurrency(context: android.content.Context, value: Double): String {
+    fun formatCurrency(context: Context, value: Double): String {
         val symbol = com.spendsnap.app.data.local.CurrencyManager.getSavedSymbol(context)
-        return "$symbol${formatNumber(value)}"
+        return "${formatNumber(value)} $symbol"
     }
 
     /**

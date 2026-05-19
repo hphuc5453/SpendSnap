@@ -73,7 +73,10 @@ fun ProfileScreen(
     val logoutState by viewModel.logoutState.collectAsState()
 
     LaunchedEffect(logoutState) {
-        if (logoutState) onLogoutSuccess()
+        if (logoutState) {
+            onLogoutSuccess()
+            viewModel.resetLogoutState()
+        }
     }
 
     Column(

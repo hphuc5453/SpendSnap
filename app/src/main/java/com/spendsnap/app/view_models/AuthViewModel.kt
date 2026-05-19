@@ -47,6 +47,8 @@ class AuthViewModel @Inject constructor(
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = ApiResult.Loading(true)
+            // Xóa cờ logout còn sót từ phiên trước, tránh ProfileScreen redirect nhầm
+            _logoutState.value = false
             val result = authRepository.signIn(LoginRequest(email, encodePassword(password)))
 
             // Nếu thành công, lưu token vào DataStore và prefetch icons về Room
@@ -74,7 +76,7 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            authManager.clearAuth()
+            authManager.clearAllUserData()
             userRepository.clearCache()
             _logoutState.value = true
         }
@@ -83,5 +85,9 @@ class AuthViewModel @Inject constructor(
     fun resetLoginState() {
         _loginState.value = null
         _signupState.value = null
+    }
+
+    fun resetLogoutState() {
+        _logoutState.value = false
     }
 }

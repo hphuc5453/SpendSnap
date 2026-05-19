@@ -34,17 +34,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,7 +69,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -74,17 +79,16 @@ import com.spendsnap.app.R
 import com.spendsnap.app.data.local.CurrencyManager
 import com.spendsnap.app.data.remote.services.ApiResult
 import com.spendsnap.app.shared.Constants
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
 import com.spendsnap.app.ui.components.AppStatusDialog
 import com.spendsnap.app.ui.components.DialogType
 import com.spendsnap.app.ui.components.LoadingDialog
-import com.spendsnap.app.ui.shared.HeaderSection
 import com.spendsnap.app.view_models.CategoryViewModel
 import com.spendsnap.app.view_models.TransactionViewModel
-import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import java.io.File
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -96,6 +100,10 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+
+    DisposableEffect(Unit) {
+        onDispose { cameraExecutor.shutdown() }
+    }
 
     var hasCameraPermission by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
@@ -115,8 +123,16 @@ fun CameraScreen(
     var selectedKind by remember { mutableStateOf(Constants.KIND_EXPENSE) }
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
     var amountText by remember { mutableStateOf("") }
+    var isCapturing by remember { mutableStateOf(false) }
 
-    LoadingDialog(isLoading = isLoading)
+    LaunchedEffect(capturedUri) {
+        if (capturedUri != null && isCapturing) {
+            delay(250)
+            isCapturing = false
+        }
+    }
+
+    LoadingDialog(isLoading = isLoading || isCapturing)
 
     AppStatusDialog(
         show = showErrorDialog,
@@ -164,24 +180,32 @@ fun CameraScreen(
                 showErrorDialog = true
                 viewModel.resetCreateState()
             }
+
             is ApiResult.Success -> {
                 showSuccessDialog = true
                 viewModel.resetCreateState()
             }
+
             else -> {}
         }
     }
 
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         Column {
             if (hasCameraPermission) {
                 if (capturedUri == null) {
                     CameraView(
                         executor = cameraExecutor,
+                        onCaptureStart = { isCapturing = true },
                         onImageCaptured = { capturedUri = it },
-                        onError = { Log.e("CameraScreen", "Error", it) }
+                        onError = {
+                            isCapturing = false
+                            Log.e("CameraScreen", "Error", it)
+                        }
                     )
                 } else {
                     CapturePreview(
@@ -197,14 +221,23 @@ fun CameraScreen(
                         onConfirm = {
                             val amountValue = amountText.toDoubleOrNull()
                             if (amountValue == null || amountValue <= 0) {
-                                Toast.makeText(context, context.getString(R.string.validate_amount_invalid), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.validate_amount_invalid),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 return@CapturePreview
                             }
                             if (selectedCategoryId.isEmpty()) {
-                                Toast.makeText(context, context.getString(R.string.validate_select_category), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.validate_select_category),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 return@CapturePreview
                             }
-                            val imageFile = capturedUri?.path?.let { File(it) }?.takeIf { it.exists() }
+                            val imageFile =
+                                capturedUri?.path?.let { File(it) }?.takeIf { it.exists() }
                             viewModel.createTransaction(
                                 amount = amountValue,
                                 categoryId = selectedCategoryId,
@@ -230,6 +263,7 @@ fun CameraScreen(
 @Composable
 fun CameraView(
     executor: ExecutorService,
+    onCaptureStart: () -> Unit = {},
     onImageCaptured: (Uri) -> Unit,
     onError: (ImageCaptureException) -> Unit
 ) {
@@ -238,24 +272,37 @@ fun CameraView(
     val previewView = remember { PreviewView(context) }
     val imageCapture = remember { ImageCapture.Builder().build() }
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        var boundProvider: ProcessCameraProvider? = null
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
+            boundProvider = cameraProvider
             val preview = Preview.Builder().build().also {
                 it.surfaceProvider = previewView.surfaceProvider
             }
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    imageCapture
+                )
             } catch (exc: Exception) {
                 Log.e("CameraView", "Binding failed", exc)
             }
         }, ContextCompat.getMainExecutor(context))
+
+        onDispose {
+            boundProvider?.unbindAll()
+        }
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(12.dp))
@@ -271,14 +318,27 @@ fun CameraView(
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(
-            onClick = { takePhoto(context, imageCapture, executor, onImageCaptured, onError) },
-            modifier = Modifier.padding(bottom = 40.dp).size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary)
+            onClick = {
+                onCaptureStart()
+                takePhoto(context, imageCapture, executor, onImageCaptured, onError)
+            },
+            modifier = Modifier
+                .padding(bottom = 40.dp)
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
         ) {
-            Icon(painterResource(R.drawable.outline_photo_camera_24), contentDescription = null, modifier = Modifier.size(36.dp), tint = Color.Black)
+            Icon(
+                painterResource(R.drawable.outline_photo_camera_24),
+                contentDescription = null,
+                modifier = Modifier.size(36.dp),
+                tint = Color.Black
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapturePreview(
     uri: Uri,
@@ -293,84 +353,132 @@ fun CapturePreview(
     onConfirm: () -> Unit,
     onRetake: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .padding(top = 12.dp)
-                .clip(RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            AsyncImage(model = uri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        }
+    val sheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.Expanded,
+        skipHiddenState = true,
+        confirmValueChange = { it == SheetValue.Expanded }
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        KindTabs(selectedKind = selectedKind, onKindSelected = onKindSelected)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        CategoryPicker(
-            categories = categories,
-            iconMap = iconMap,
-            selectedCategoryId = selectedCategoryId,
-            onCategorySelected = onCategorySelected
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(text = stringResource(R.string.label_entering_amount), style = MaterialTheme.typography.labelMedium, color = Color.Gray, letterSpacing = 1.sp)
-
-        TextField(
-            value = formatAmountInput(amount),
-            onValueChange = {},
-            readOnly = true, // Quan trọng: Chặn bàn phím hệ thống
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = {
-                Text(stringResource(R.string.placeholder_amount_zero), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 48.sp),
-                    color = Color.White.copy(alpha = 0.2f))
-            },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            textStyle = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold, fontSize = 48.sp, textAlign = TextAlign.Center)
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Custom Numeric Keypad — fixed height để 4 rows luôn render đủ
-        NumericKeypad(
-            value = amount,
-            onValueChange = onAmountChange,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextButton(onClick = onRetake, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.btn_retake_photo), color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
-            }
-            Button(
-                onClick = onConfirm,
-                modifier = Modifier.weight(2f).height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 96.dp,
+        sheetContainerColor = Color(0xFF0E0E10),
+        sheetContentColor = Color.White,
+        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetContent = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(stringResource(R.string.btn_confirm), color = Color.Black, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.Black)
+                KindTabs(selectedKind = selectedKind, onKindSelected = onKindSelected)
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                CategoryPicker(
+                    categories = categories,
+                    iconMap = iconMap,
+                    selectedCategoryId = selectedCategoryId,
+                    onCategorySelected = onCategorySelected
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val displayAmount = formatAmountInput(amount)
+                    val amountTextStyle = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Bold, fontSize = 24.sp
+                    )
+                    Text(
+                        text = displayAmount.ifEmpty { stringResource(R.string.placeholder_amount_zero) },
+                        style = amountTextStyle,
+                        color = if (displayAmount.isEmpty()) Color.White.copy(alpha = 0.2f) else Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = CurrencyManager.getSavedSymbol(LocalContext.current),
+                        style = amountTextStyle,
+                        color = Color.White
+                    )
+                }
+
+                NumericKeypad(
+                    value = amount,
+                    onValueChange = onAmountChange,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    TextButton(onClick = onRetake, modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.btn_retake_photo),
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier
+                            .weight(2f)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(26.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            stringResource(R.string.btn_confirm),
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.85f)
+                    .clip(RoundedCornerShape(32.dp))
+                    .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+            ) {
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }
@@ -399,23 +507,39 @@ fun NumericKeypad(
         }
     }
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         keys.forEach { row ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 row.forEach { key ->
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(64.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(if (key == "BACKSPACE") Color.Transparent else Color(0xFF1C1C1E))
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (key == "BACKSPACE") Color.Transparent else Color(
+                                    0xFF1C1C1E
+                                )
+                            )
                             .clickable { handleKey(key) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (key == "BACKSPACE") {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White)
+                            Icon(
+                                Icons.Default.Backspace,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
                         } else {
-                            Text(text = key, style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = key,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -429,9 +553,9 @@ private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF1C1C1E))
-            .padding(4.dp),
+            .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         listOf(
@@ -442,8 +566,8 @@ private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(44.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(20.dp))
                     .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                     .clickable { onKindSelected(kind) },
                 contentAlignment = Alignment.Center
@@ -452,7 +576,7 @@ private fun KindTabs(selectedKind: String, onKindSelected: (String) -> Unit) {
                     text = stringResource(labelRes),
                     color = if (isSelected) Color.Black else Color.Gray,
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }
@@ -476,12 +600,6 @@ private fun CategoryPicker(
             style = MaterialTheme.typography.labelMedium,
             color = Color.Gray,
             letterSpacing = 1.sp
-        )
-        Text(
-            text = stringResource(R.string.btn_see_all),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
         )
     }
     Spacer(modifier = Modifier.height(8.dp))
@@ -508,22 +626,27 @@ private fun CategoryPicker(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFF1C1C1E)),
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary else Color(
+                                    0xFF1C1C1E
+                                )
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = iconMap[category.icon] ?: Constants.FALLBACK_ICON,
-                            fontSize = 24.sp
+                            fontSize = 18.sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = category.name.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp
                     )
                 }
             }
@@ -533,17 +656,39 @@ private fun CategoryPicker(
 
 @Composable
 fun CornerMarkers(color: Color) {
-    Canvas(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+    Canvas(modifier = Modifier
+        .fillMaxSize()
+        .padding(20.dp)) {
         val strokeWidth = 10f
         val cornerSize = 50f
         // TL
-        drawPath(path = Path().apply { moveTo(0f, cornerSize); lineTo(0f, 0f); lineTo(cornerSize, 0f) }, color = color, style = Stroke(strokeWidth))
+        drawPath(path = Path().apply {
+            moveTo(0f, cornerSize); lineTo(0f, 0f); lineTo(
+            cornerSize,
+            0f
+        )
+        }, color = color, style = Stroke(strokeWidth))
         // TR
-        drawPath(path = Path().apply { moveTo(size.width - cornerSize, 0f); lineTo(size.width, 0f); lineTo(size.width, cornerSize) }, color = color, style = Stroke(strokeWidth))
+        drawPath(path = Path().apply {
+            moveTo(size.width - cornerSize, 0f); lineTo(
+            size.width,
+            0f
+        ); lineTo(size.width, cornerSize)
+        }, color = color, style = Stroke(strokeWidth))
         // BL
-        drawPath(path = Path().apply { moveTo(0f, size.height - cornerSize); lineTo(0f, size.height); lineTo(cornerSize, size.height) }, color = color, style = Stroke(strokeWidth))
+        drawPath(path = Path().apply {
+            moveTo(0f, size.height - cornerSize); lineTo(
+            0f,
+            size.height
+        ); lineTo(cornerSize, size.height)
+        }, color = color, style = Stroke(strokeWidth))
         // BR
-        drawPath(path = Path().apply { moveTo(size.width - cornerSize, size.height); lineTo(size.width, size.height); lineTo(size.width, size.height - cornerSize) }, color = color, style = Stroke(strokeWidth))
+        drawPath(path = Path().apply {
+            moveTo(
+                size.width - cornerSize,
+                size.height
+            ); lineTo(size.width, size.height); lineTo(size.width, size.height - cornerSize)
+        }, color = color, style = Stroke(strokeWidth))
     }
 }
 
@@ -566,11 +711,22 @@ private fun formatAmountInput(raw: String): String {
     return formattedInt + decPart
 }
 
-private fun takePhoto(context: Context, imageCapture: ImageCapture, executor: ExecutorService, onImageCaptured: (Uri) -> Unit, onError: (ImageCaptureException) -> Unit) {
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    executor: ExecutorService,
+    onImageCaptured: (Uri) -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
     val photoFile = File(context.cacheDir, "snap_${System.currentTimeMillis()}.jpg")
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
     imageCapture.takePicture(outputOptions, executor, object : ImageCapture.OnImageSavedCallback {
-        override fun onImageSaved(output: ImageCapture.OutputFileResults) { onImageCaptured(Uri.fromFile(photoFile)) }
-        override fun onError(exception: ImageCaptureException) { onError(exception) }
+        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+            onImageCaptured(Uri.fromFile(photoFile))
+        }
+
+        override fun onError(exception: ImageCaptureException) {
+            onError(exception)
+        }
     })
 }

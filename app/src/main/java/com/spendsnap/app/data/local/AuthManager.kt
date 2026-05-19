@@ -6,9 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.spendsnap.app.data.AppDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +19,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @Singleton
 class AuthManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val appDatabase: AppDatabase
 ) {
     companion object {
         private val ACCESS_TOKEN = stringPreferencesKey("access_token")
@@ -37,5 +41,17 @@ class AuthManager @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences.remove(ACCESS_TOKEN)
         }
+    }
+
+    /**
+     * Xóa toàn bộ session của user hiện tại: token + mọi bảng Room.
+     * Gọi khi logout, và như safety-net trước khi đăng nhập user mới
+     * (phòng TH app crash giữa logout & login khiến dữ liệu user cũ còn sót).
+     */
+    suspend fun clearAllUserData() {
+        withContext(Dispatchers.IO) {
+            appDatabase.clearAllTables()
+        }
+        clearAuth()
     }
 }
